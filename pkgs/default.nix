@@ -1,4 +1,4 @@
-{ pkgs ? (import <nixpkgs> {}) }:
+{ pkgs }:
 
 rec {
   migen = pkgs.callPackage ./migen.nix {};

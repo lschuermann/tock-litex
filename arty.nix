@@ -9,7 +9,7 @@
 with pkgs;
 
 let
-  litexPkgs = import ./pkgs {};
+  litexPkgs = import ./pkgs { pkgs = pkgs; };
 
   # Avoid inclusion of modified version of
   # https://github.com/lukaslaobeyer/nix-fpgapkgs until it is assigned
@@ -19,7 +19,13 @@ let
   # To build, override this with a path to a Vivado expression (the
   # binary should be located at "${vivado}/bin/vivado")
   #
-  #vivado = pkgs.callPackage ./pkgs/vivado {};
+  # The current releases are built with a Vivado version using the
+  # system nixpkgs to avoid rebuilding the Vivado derivation. This
+  # shouldn't be an issue given that the Vivado derivation is
+  # currently not included within this repository and hence
+  # (unfortunately) this has no chance of being reproducible anyways.
+  #
+  #vivado = (import <nixpkgs> {}).callPackage ./pkgs/vivado {};
 
 in
   stdenv.mkDerivation {
