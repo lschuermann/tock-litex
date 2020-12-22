@@ -3,7 +3,7 @@
 rec {
   migen = pkgs.callPackage ./migen.nix {};
 
-  pythondata-cpu-vexriscv = pkgs.callPackage ./pythondata-cpu-vexriscv.nix {};
+  pythondata-cpu-vexriscv = pkgs.callPackage ./pythondata-cpu-vexriscv {};
   pythondata-software-compiler-rt = pkgs.callPackage ./pythondata-software-compiler-rt.nix {};
   pythondata-misc-tapcfg = pkgs.callPackage ./pythondata-misc-tapcfg.nix {};
 
