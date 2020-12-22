@@ -32,8 +32,17 @@ let
   };
 
   lib = pinnedPkgs.lib;
+  litexPkgs = import ./pkgs { pkgs = pinnedPkgs; };
 
 in
   pinnedPkgs.linkFarm "tock-litex" (
-    lib.mapAttrsToList (name: deriv: { name = "${name}.zip"; path = zipDeriv name deriv; }) socs
+    # Include the generated gateware and software for the SoCs
+    (lib.mapAttrsToList (name: deriv: { name = "${name}.zip"; path = zipDeriv name deriv; }) socs)
+
+    # Include the generated VexRiscv CPUs (from the
+    # pythondata-cpu-vexriscv package with patches applied)
+    ++ [{
+      name = "pythondata-cpu-vexriscv_patched.tar.gz";
+      path = "${litexPkgs.pythondata-cpu-vexriscv.src}";
+    }]
   )
