@@ -14,6 +14,10 @@ buildPythonPackage rec {
     sha256 = "000cvcykfkpr9mkfaq29ql9jn3dc72m5hwa95b39m4rfglvdqb0i";
   };
 
+  patches = [
+    ./0001-Add-Tock-VexRiscv-cpu-variants.patch
+  ];
+
   propagatedBuildInputs = [
     # LLVM's compiler-rt data downloaded and importable as a python
     # package

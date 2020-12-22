@@ -21,6 +21,10 @@ let
 
       nativeBuildInputs = [ scala sbt ];
 
+      patches = [
+        ./0001-Add-TockSecureIMC-cpu-variant.patch
+      ];
+
       buildPhase = ''
         export SBT_OPTS="-Dsbt.global.base=/tmp/.sbt -Dsbt.ivy.home=/tmp/.ivy2"
         rm pythondata_cpu_vexriscv/verilog/*.v
@@ -41,7 +45,7 @@ let
       #
       # We hope that the output hash is mostly stable, in particular
       # by deleting unnecessary build artifcats
-      outputHash = "sha256:1m4ish2c9xzmgqc1jyg3kj499q95xrc32clyyf1j943lxhavsp1l";
+      outputHash = "sha256:052cxiv5i1shyflv5aghlwjb4lxgp5y61b78ymqnxgz1826qqv8b";
     };
 
 in

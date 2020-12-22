@@ -1,0 +1,34 @@
+From f77224b66fa14dff61e5949e3f964ad9f885fed5 Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Tue, 22 Dec 2020 09:44:39 +0100
+Subject: [PATCH] Add TockSecureIMC cpu variant
+
+---
+ pythondata_cpu_vexriscv/verilog/Makefile | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/pythondata_cpu_vexriscv/verilog/Makefile b/pythondata_cpu_vexriscv/verilog/Makefile
+index 3daa1d4..de25dff 100644
+--- a/pythondata_cpu_vexriscv/verilog/Makefile
++++ b/pythondata_cpu_vexriscv/verilog/Makefile
+@@ -1,6 +1,6 @@
+ SRC := ${shell find . -type f -name \*.scala}
+ 
+-all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_IMAC.v VexRiscv_IMACDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v VexRiscv_Secure.v VexRiscv_SecureDebug.v 
++all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_IMAC.v VexRiscv_IMACDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v VexRiscv_Secure.v VexRiscv_SecureDebug.v VexRiscv_TockSecureIMC.v VexRiscv_TockSecureIMCDebug.v
+ 
+ VexRiscv.v: $(SRC)
+ 	sbt compile "runMain vexriscv.GenCoreDefault"
+@@ -46,3 +46,9 @@ VexRiscv_Secure.v: $(SRC)
+ 
+ VexRiscv_SecureDebug.v: $(SRC)
+ 	sbt compile "runMain vexriscv.GenCoreDefault --pmp true --csrPluginConfig secure -d --outputFile VexRiscv_SecureDebug"
++
++VexRiscv_TockSecureIMC.v: $(SRC)
++	sbt compile "runMain vexriscv.GenCoreDefault --pmp true --csrPluginConfig secure --compressedGen true --mulDiv true --outputFile VexRiscv_TockSecureIMC"
++
++VexRiscv_TockSecureIMCDebug.v: $(SRC)
++	sbt compile "runMain vexriscv.GenCoreDefault --pmp true --csrPluginConfig secure --compressedGen true --mulDiv true -d --outputFile VexRiscv_TockSecureIMCDebug"
+-- 
+2.27.0
+

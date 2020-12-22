@@ -42,7 +42,7 @@ in
     buildPhase = ''
       ${pkgs.python38}/bin/python3.8 ./litex/boards/targets/arty.py \
         --uart-baudrate=1000000 \
-        --cpu-variant=secure \
+        --cpu-variant=tock+secure+imc \
         --csr-data-width=32 \
         --timer-uptime \
         --integrated-rom-size=0xb000 \

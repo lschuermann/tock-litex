@@ -7,7 +7,7 @@ rec {
   pythondata-software-compiler-rt = pkgs.callPackage ./pythondata-software-compiler-rt.nix {};
   pythondata-misc-tapcfg = pkgs.callPackage ./pythondata-misc-tapcfg.nix {};
 
-  litex = pkgs.callPackage ./litex.nix {
+  litex = pkgs.callPackage ./litex {
     python3Packages = pkgs.python3Packages // {
       pythondata-software-compiler-rt = pythondata-software-compiler-rt;
       migen = migen;
