@@ -4,57 +4,53 @@
 # [Tock litex/arty board
 # definition](https://github.com/tock/tock/tree/master/boards/litex/arty).
 
-{ pkgs ? (import <nixpkgs> {}) }:
-
-with pkgs;
-
 let
-  litexPkgs = import ./pkgs { pkgs = pkgs; };
+  litexPkgs = pkgs: import ./pkgs { pkgs = pkgs; };
 
-  # Avoid inclusion of modified version of
-  # https://github.com/lukaslaobeyer/nix-fpgapkgs until it is assigned
-  # a compatible license
-  # (https://github.com/lukaslaobeyer/nix-fpgapkgs/issues/2)
-  #
-  # To build, override this with a path to a Vivado expression (the
-  # binary should be located at "${vivado}/bin/vivado")
-  #
-  # The current releases are built with a Vivado version using the
-  # system nixpkgs to avoid rebuilding the Vivado derivation. This
-  # shouldn't be an issue given that the Vivado derivation is
-  # currently not included within this repository and hence
-  # (unfortunately) this has no chance of being reproducible anyways.
-  #
-  #vivado = (import <nixpkgs> {}).callPackage ./pkgs/vivado {};
+  # This will try to build a Xilinx Vivado 2020.01 installation. Feel
+  # free to avoid evaluating this by either overriding the `vivado`
+  # argument with a derivation providing a "bin/vivado" executable, or
+  # set `buildBitstream` to `false`.
+  vivadoDerivation = pkgs: pkgs.callPackage ./pkgs/vivado {};
 
 in
-  stdenv.mkDerivation {
+  { pkgs ? (import <nixpkgs> {})
+  , vivado ? (vivadoDerivation pkgs)
+  , buildBitstream ? false
+  }:
+
+  pkgs.stdenv.mkDerivation {
     pname = "litex-arty";
-    version = litexPkgs.litex.version;
+    version = (litexPkgs pkgs).litex.version;
 
-    src = litexPkgs.litex.src;
+    src = (litexPkgs pkgs).litex.src;
 
-    buildInputs = with pkgs; with litexPkgs; [
+    buildInputs = with pkgs; with (litexPkgs pkgs); [
       python38
 
       litex litedram liteeth liteiclink
       pythondata-cpu-vexriscv
 
       pkgsCross.riscv64-embedded.buildPackages.gcc
+    ] ++ (
+      # Vivado is only required if a bitstream is to be built
+      if buildBitstream then [
+        vivado
+      ] else []
+    );
 
-      vivado
-    ];
-
-    buildPhase = ''
-      ${pkgs.python38}/bin/python3.8 ./litex/boards/targets/arty.py \
-        --uart-baudrate=1000000 \
-        --cpu-variant=tock+secure+imc \
-        --csr-data-width=32 \
-        --timer-uptime \
-        --integrated-rom-size=0xb000 \
-        --with-ethernet \
-        --build
-    '';
+    buildPhase = builtins.concatStringsSep " " ([
+      "${pkgs.python38}/bin/python3.8 ./litex/boards/targets/arty.py"
+      "--uart-baudrate=1000000"
+      "--cpu-variant=tock+secure+imc"
+      "--csr-data-width=32"
+      "--timer-uptime"
+      "--integrated-rom-size=0xb000"
+      "--with-ethernet"
+    ] ++ (
+      # Only build the bitstream if the user explicitly requests it
+      if buildBitstream then [ "--build" ] else [])
+    );
 
     installPhase = ''
       mkdir -p $out

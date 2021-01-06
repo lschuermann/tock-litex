@@ -28,7 +28,7 @@ let
   };
 
   socs = {
-    "arty_a7-35t" = (import ./arty.nix) { pkgs = pinnedPkgs; };
+    "arty_a7-35t" = (import ./arty.nix) { pkgs = pinnedPkgs; buildBitstream = true; };
   };
 
   lib = pinnedPkgs.lib;
