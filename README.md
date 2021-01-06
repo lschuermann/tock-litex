@@ -24,6 +24,14 @@ and bitstreams are uploaded & released on GitHub.
 This repository aims to always track the Tock master branch and
 publish compatible bitstreams.
 
+## Prebuilt artifacts and bitstreams
+
+The [GitHub releases
+page](https://github.com/lschuermann/tock-litex/releases) contains
+prebuilt artifacts and releases (as [built
+here](#Building-a-release)). These can be used to avoid downloading
+large FPGA toolchains to build bitstreams or Scala for custom VexRiscv
+CPU variants.
 
 ## Build instructions
 
@@ -38,7 +46,7 @@ $ nix-build release.nix
 ```
 
 The created target directory will contain the respective build
-artifacts as ZIP files.
+artifacts as `.zip` / `.tar.gz` archives.
 
 ## License
 
