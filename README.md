@@ -36,6 +36,36 @@ here](#Building-a-release)). These can be used to avoid downloading
 large FPGA toolchains to build bitstreams or Scala for custom VexRiscv
 CPU variants.
 
+## LiteX Simulation (Verilator)
+
+To run the LiteX simulation, along with the corresponding [Tock board
+definition](https://github.com/tock/tock/tree/master/boards/litex), a
+`nix-shell` with all required dependencies can be entered:
+
+```
+$ nix-shell shell.nix
+```
+
+From within this enviroment all LiteX tools along with `litex_sim` are
+available:
+
+```
+[nix-shell:~/tock-litex]$ litex_sim \
+  --csr-data-width=32 \
+  --integrated-rom-size=1048576 \
+  --cpu-variant=secure \
+  --with-ethernet \
+  --rom-init $PATH_TO_TOCK_BINARY
+[...]
+make: Leaving directory '/home/leons/develop/tock/boards/litex/sim/build/sim/gateware'
+
+[sudo] password for user:
+[spdeeprom] loaded (addr = 0x0)
+[...]
+[clocker] sys_clk: freq_hz=1000000, phase_deg=0
+Verilated LiteX+VexRiscv: initialization complete, entering main loop.
+```
+
 ## Build instructions
 
 While releases are built with the Nix package manager through the
