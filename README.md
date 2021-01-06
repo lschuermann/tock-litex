@@ -68,9 +68,38 @@ Verilated LiteX+VexRiscv: initialization complete, entering main loop.
 
 ## Build instructions
 
-While releases are built with the Nix package manager through the
-contained Nix derivations, efforts are made to allow building without
-the Nix package manager installed.
+While building boards currently depends on the Nix package manager
+through the contained Nix derivations, efforts are made to allow
+building without the Nix package manager installed in the future.
+
+### Build a single board
+
+To build a single board, run
+
+```
+$ nix-build $BOARD.nix
+```
+
+Note that this will use the default nixpkgs as defined in the
+environment for downloading dependencies. It might take a while to
+build all dependencies.
+
+By default, this will generate all LiteX artificats, including the
+FPGA bitstreams. To generate bitstreams for Xilinx FPGAs the
+proprietary Vivado software suite is required, hence by default only
+the Verilog sources will be generated for these respective boards. To
+attempt to build a bitstream using Vivado, run the build using
+
+```
+$ nix-build $BOARD.nix --arg buildBitstream true
+```
+
+This will attempt to build a [Xilinx Vivado 2020.01 WebPack
+derivation](./pkgs/vivado/default.nix) first. To use a custom Vivado
+derivation, pass it in using the `vivado` argument. Due to Sandboxing
+this path must point to the Nix store.
+
+### Building a release
 
 To generate ZIPs for upload to GitHub, run
 
