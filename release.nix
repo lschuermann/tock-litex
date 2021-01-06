@@ -27,17 +27,18 @@ let
     '';
   };
 
-  socs = {
-    "arty_a7-35t" = (import ./arty.nix) { pkgs = pinnedPkgs; buildBitstream = true; };
+  socs = enableVivado: {
+    "arty_a7-35t" = (import ./arty.nix) { pkgs = pinnedPkgs; buildBitstream = enableVivado; };
   };
 
   lib = pinnedPkgs.lib;
   litexPkgs = import ./pkgs { pkgs = pinnedPkgs; };
 
 in
-  pinnedPkgs.linkFarm "tock-litex" (
+  { enableVivado ? true }:
+  pinnedPkgs.linkFarm ("tock-litex" + (if !enableVivado then "-novivado" else "")) (
     # Include the generated gateware and software for the SoCs
-    (lib.mapAttrsToList (name: deriv: { name = "${name}.zip"; path = zipDeriv name deriv; }) socs)
+    (lib.mapAttrsToList (name: deriv: { name = "${name}.zip"; path = zipDeriv name deriv; }) (socs enableVivado))
 
     # Include the generated VexRiscv CPUs (from the
     # pythondata-cpu-vexriscv package with patches applied)
@@ -45,4 +46,11 @@ in
       name = "pythondata-cpu-vexriscv_patched.tar.gz";
       path = "${litexPkgs.pythondata-cpu-vexriscv.src}";
     }]
+
+    # Warn if building bitstreams using Vivado has been disabled. The
+    # release is incomplete and should not be published then.
+    ++ (if (!enableVivado) then [{
+      name = "VIVADO_BITSTREAM_BUILD_DISABLED";
+      path = "/dev/null";
+    }] else [])
   )
