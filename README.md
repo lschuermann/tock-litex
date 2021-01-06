@@ -24,6 +24,9 @@ and bitstreams are uploaded & released on GitHub.
 This repository aims to always track the Tock master branch and
 publish compatible bitstreams.
 
+Currently included boards are:
+- Digilent Arty A7-35T: [arty.nix](./arty.nix)
+
 ## Prebuilt artifacts and bitstreams
 
 The [GitHub releases
