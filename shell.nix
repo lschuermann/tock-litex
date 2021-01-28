@@ -1,7 +1,7 @@
 # A nix-shell expression with the collection of build inputs for the
 # various board expressions. Can be helpful when debugging LiteX.
 
-{ pkgs ? (import <nixpkgs> {}) }:
+{ pkgs ? (import <nixpkgs> {}), withVivado ? false }:
 
 with pkgs;
 
@@ -23,5 +23,5 @@ in
       pythondata-misc-tapcfg libevent json_c verilator
 
       yosys nextpnr icestorm
-    ];
+    ] ++ (if withVivado then [(pkgs.callPackage ./pkgs/vivado {})] else []);
   }

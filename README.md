@@ -66,6 +66,13 @@ make: Leaving directory '/home/leons/develop/tock/boards/litex/sim/build/sim/gat
 Verilated LiteX+VexRiscv: initialization complete, entering main loop.
 ```
 
+If desired, Xilinx Vivado can be made available in the shell by adding
+the appropriate argument:
+
+```
+$ nix-shell --arg withVivado true shell.nix
+```
+
 ## Build instructions
 
 While building boards currently depends on the Nix package manager
