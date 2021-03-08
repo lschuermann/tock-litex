@@ -3,6 +3,17 @@
 with python3Packages;
 
 let
+
+  # Unfortunately I don't understand Scala and the Scala+Nix ecosystem
+  # sufficiently well to be able to build an expression which
+  #
+  # (a) does run in a Sandbox and therefore can't damage the user's
+  #     environment
+  #
+  # (b) produces a constant output hash
+  #
+  # This does seem to work sometimes, but does not either property
+  # above. USE AT YOUR OWN RISK. You have been warned.
   customCpuVexRiscv =
     stdenv.mkDerivation rec {
       upstreamName = "pythondata-cpu-vexriscv";
@@ -74,9 +85,17 @@ let
 in
   buildPythonPackage rec {
     pname = "pythondata-cpu-vexriscv";
-    version = "patched-git-${src.upstreamRev}";
 
-    src = customCpuVexRiscv;
+    # Warning: see comment above
+    #version = "patched-git-${src.upstreamRev}";
+    #src = customCpuVexRiscv;
+
+    buildid = "2021030800";
+    version = "custom-patched-${buildid}";
+    src = builtins.fetchTarball {
+      url = "https://github.com/lschuermann/litex-vexriscv-custom/releases/download/${buildid}/generated.tar.gz";
+      sha256 = "1hm0x9ss0frcy6wy65chnqvqln6bbb048jd388fcx98hll94d6xs";
+    };
 
     doCheck = false;
   }
