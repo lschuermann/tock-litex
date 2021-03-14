@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "litedram";
-  rev = "103072c68a";
+  rev = "f17037fdb22c87"; # litedram master of Mar 12, 2021, 2:29 PM GMT+1
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "enjoy-digital";
     repo = "litedram";
     rev = rev;
-    sha256 = "1dj4zy9zk9q4kh6x2byyzmq5ffwl4866vdrmcfjflsfdlcd0z805";
+    sha256 = "04jx3clsdppp3wnha1547v7r663cqs9dc2s336dv1acpsx68hp61";
   };
 
   buildInputs = [

@@ -90,7 +90,10 @@ in
     #version = "patched-git-${src.upstreamRev}";
     #src = customCpuVexRiscv;
 
-    buildid = "2021030800";
+    buildid = "2021030800"; # GitHub actions build of 65292ea2b2aa6c,
+                            # which is based on upstream
+                            # 7f9db486d40206 of Mar 5, 2021, 9:48 PM
+                            # GMT+1
     version = "custom-patched-${buildid}";
     src = builtins.fetchTarball {
       url = "https://github.com/lschuermann/litex-vexriscv-custom/releases/download/${buildid}/generated.tar.gz";
