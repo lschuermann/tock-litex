@@ -29,6 +29,7 @@ let
 
   socs = enableVivado: {
     "arty_a7-35t" = (import ./arty.nix) { pkgs = pinnedPkgs; buildBitstream = enableVivado; };
+    "nexys_video" = (import ./nexys_video.nix) { pkgs = pinnedPkgs; buildBitstream = enableVivado; };
   };
 
   lib = pinnedPkgs.lib;
