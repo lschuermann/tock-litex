@@ -9,10 +9,10 @@ let
       sha256 = "sha256:0i4w6zfj1pz52lnpdz4qn9m8d96zlmwfgizi5dsdy3vcqxdwkqi3";
     }) {};
 
+  zipDeriv = name: deriv: zipPath name deriv.version deriv;
 
-  zipDeriv = name: deriv: pinnedPkgs.stdenv.mkDerivation {
-    name = "${name}.zip";
-    version = deriv.version;
+  zipPath = dname: version: deriv: pinnedPkgs.stdenv.mkDerivation rec {
+    name = "${dname}-${version}.zip";
 
     builder = pinnedPkgs.writeScript "build_${name}.zip.sh" ''
       #! ${pinnedPkgs.bash}/bin/bash
@@ -44,8 +44,8 @@ in
     # Include the generated VexRiscv CPUs (from the
     # pythondata-cpu-vexriscv package with patches applied)
     ++ [{
-      name = "pythondata-cpu-vexriscv_patched.tar.gz";
-      path = "${litexPkgs.pythondata-cpu-vexriscv.src}";
+      name = "pythondata-cpu-vexriscv_patched.zip";
+      path = "${zipPath "pythondata-cpu-vexriscv_patched.zip" "${litexPkgs.pythondata-cpu-vexriscv.version}" "${litexPkgs.pythondata-cpu-vexriscv.src}"}";
     }]
 
     # Warn if building bitstreams using Vivado has been disabled. The
