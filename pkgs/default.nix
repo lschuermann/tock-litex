@@ -14,6 +14,12 @@ rec {
     };
   };
 
+  litex-boards = pkgs.callPackage ./litex-boards.nix {
+    python3Packages = pkgs.python3Packages // {
+      litex = litex;
+    };
+  };
+
   litedram = pkgs.callPackage ./litedram.nix {
     python3Packages = pkgs.python3Packages // {
       pythondata-software-compiler-rt = pythondata-software-compiler-rt;

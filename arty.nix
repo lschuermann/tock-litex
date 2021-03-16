@@ -21,14 +21,14 @@ in
 
   pkgs.stdenv.mkDerivation {
     pname = "litex-arty";
-    version = (litexPkgs pkgs).litex.version;
+    version = (litexPkgs pkgs).litex-boards.version;
 
-    src = (litexPkgs pkgs).litex.src;
+    src = (litexPkgs pkgs).litex-boards.src;
 
     buildInputs = with pkgs; with (litexPkgs pkgs); [
       python38
 
-      litex litedram liteeth liteiclink
+      litex litex-boards litedram liteeth liteiclink
       pythondata-cpu-vexriscv
 
       pkgsCross.riscv64-embedded.buildPackages.gcc
@@ -40,7 +40,7 @@ in
     );
 
     buildPhase = builtins.concatStringsSep " " ([
-      "${pkgs.python38}/bin/python3.8 ./litex/boards/targets/arty.py"
+      "${pkgs.python38}/bin/python3.8 ./litex_boards/targets/arty.py"
       "--uart-baudrate=1000000"
       "--cpu-variant=tock+secure+imc"
       "--csr-data-width=32"
