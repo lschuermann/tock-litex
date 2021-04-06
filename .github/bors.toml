@@ -1,0 +1,14 @@
+# List of commit statuses that must pass on the merge commit before it
+# is pushed to master.
+status = [
+  "ci-release-build"
+]
+
+# List of PR labels that may not be attached to a PR when it is r+-ed.
+block_labels = [
+  "blocked",
+]
+
+# If set to true, and if the PR branch is on the same repository that
+# bors-ng itself is on, the branch will be deleted.
+delete_merged_branches = false
