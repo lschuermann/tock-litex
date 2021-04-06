@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "litex-boards";
-  rev = "ef662035b13a65"; # litex-boards master of Mar 16, 2021, 10:42 AM GMT+1
+  rev = "03accabc257ca"; # litex-boards master of Mar 31, 2021, 9:48 AM GMT+2
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "litex-hub";
     repo = pname;
     rev = rev;
-    sha256 = "15r5icqpfa68kn6xa8gbgcw2kxqincs9qsy85hk4py1wdd1ln678";
+    sha256 = "0lfbr6qhjgwbsw0p4zpfb6w3frsbnc9wnjw95klkjan8dhi9c8y1";
   };
 
   buildInputs = [

@@ -36,7 +36,7 @@ in
     );
 
     buildPhase = builtins.concatStringsSep " " ([
-      "${pkgs.python38}/bin/python3.8 ./litex_boards/targets/nexys_video.py"
+      "${pkgs.python38}/bin/python3.8 ./litex_boards/targets/digilent_nexys_video.py"
       "--uart-baudrate=1000000"
       "--cpu-variant=tock+secure+imc"
       "--csr-data-width=32"
