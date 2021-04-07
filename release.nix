@@ -31,10 +31,12 @@ let
     "digilent_arty_a7-35t" = (import ./digilent_arty.nix) {
       pkgs = pinnedPkgs;
       buildBitstream = enableVivado;
+      vendorDependencies = true;
     };
     "digilent_nexys_video" = (import ./digilent_nexys_video.nix) {
       pkgs = pinnedPkgs;
       buildBitstream = enableVivado;
+      vendorDependencies = true;
     };
   };
 

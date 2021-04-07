@@ -2,6 +2,7 @@
 
 let
   litexPkgs = pkgs: import ./pkgs { pkgs = pkgs; };
+  support = import ./support.nix;
 
   # This will try to build a Xilinx Vivado 2020.01 installation. Feel
   # free to avoid evaluating this by either overriding the `vivado`
@@ -13,6 +14,7 @@ in
   { pkgs ? (import <nixpkgs> {})
   , vivado ? (vivadoDerivation pkgs)
   , buildBitstream ? false
+  , vendorDependencies ? false
   }:
 
   pkgs.stdenv.mkDerivation {
@@ -48,7 +50,12 @@ in
       if buildBitstream then [ "--build" ] else [])
     );
 
-    installPhase = ''
+    installPhase = (
+      if vendorDependencies then
+        support.vendorDependencies "digilent_nexys_video"
+      else
+        ""
+    ) + ''
       mkdir -p $out
       cp -rf ./build/digilent_nexys_video/* $out/
     '';
