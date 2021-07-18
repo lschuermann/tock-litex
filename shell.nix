@@ -13,6 +13,7 @@ in
     name = "litex-shell";
     buildInputs = with litexPkgs; [
       migen litex openocd
+      litex-boards
       litedram
       liteeth
       liteiclink
