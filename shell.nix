@@ -18,6 +18,7 @@ in
       liteeth
       liteiclink
       litescope
+      litespi
       litepcie
       litehyperbus
       pythondata-cpu-vexriscv pkgsCross.riscv64.buildPackages.gcc gnumake

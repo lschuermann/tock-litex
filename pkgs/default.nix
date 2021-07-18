@@ -34,6 +34,13 @@ rec {
     };
   };
 
+  litespi = pkgs.callPackage ./litespi.nix {
+    python3Packages = pkgs.python3Packages // {
+      litex = litex;
+    };
+  };
+
+
   liteiclink = pkgs.callPackage ./liteiclink.nix {
     python3Packages = pkgs.python3Packages // {
       litex = litex;

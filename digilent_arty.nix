@@ -31,7 +31,7 @@ in
       python38
 
       litex litex-boards litedram liteeth liteiclink litepcie
-      litehyperbus pythondata-cpu-vexriscv
+      litehyperbus litespi pythondata-cpu-vexriscv
 
       pkgsCross.riscv64-embedded.buildPackages.gcc
     ] ++ (
