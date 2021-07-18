@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "liteeth";
-  rev = "392414eef8991d"; # liteeth master of Apr 8, 2021, 2:07 PM GMT+2
+  rev = "947ed037202a99"; # liteeth master of Jul 16, 2021, 5:50 PM GMT+2
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "enjoy-digital";
     repo = pname;
     rev = rev;
-    sha256 = "025fi6q2grwkyx8d7m2wx1aq0chm82q5rj6azpj176f6mwz2hx3m";
+    sha256 = "sha256-muPIG+7d57OTLJ4i0JlADLmo18qFfQONjRCUVHUPvUE=";
   };
 
   buildInputs = [

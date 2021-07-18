@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "litehyperbus";
-  rev = "5282d5167c4c91"; # litepcie master of Nov 24, 2020, 1:45 PM GMT+1
+  rev = "b7d57e9c63b1f2"; # litehyperbus master of Jun 14, 2021, 8:03 AM GMT+2
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "litex-hub";
     repo = pname;
     rev = rev;
-    sha256 = "0y8cg8ai2rvszvcym9wads3sa38d4zhd4b28d342hgi242p6v3m9";
+    sha256 = "sha256-Xe3octAF+E124J5+1EQnSObuKqybu8SU/Ig38hWRcgE=";
   };
 
   buildInputs = [

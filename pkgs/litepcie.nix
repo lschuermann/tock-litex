@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "litepcie";
-  rev = "c4780c3140effa"; # litepcie master of Mar 18, 2021, 10:25 AM GMT+1
+  rev = "68334fd93d078c"; # litepcie master of Jul 2, 2021, 3:46 PM GMT+2
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "enjoy-digital";
     repo = pname;
     rev = rev;
-    sha256 = "0vm8qxwvpp2gw2nfbrsz0s21bhl064yc4s9xx1jpcsg1im5m56ch";
+    sha256 = "sha256-/XY3HoC3aJCsUZkRNJSZVE1UwrMHoear7CycAELtMtE=";
   };
 
   buildInputs = [

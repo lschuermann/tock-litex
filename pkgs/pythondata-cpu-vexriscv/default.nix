@@ -12,8 +12,8 @@ let
   #
   # (b) produces a constant output hash
   #
-  # This does seem to work sometimes, but does not either property
-  # above. USE AT YOUR OWN RISK. You have been warned.
+  # This does seem to work sometimes, but does not fulfill either
+  # property above. USE AT YOUR OWN RISK. You have been warned.
   customCpuVexRiscv =
     stdenv.mkDerivation rec {
       upstreamName = "pythondata-cpu-vexriscv";
@@ -90,14 +90,18 @@ in
     #version = "patched-git-${src.upstreamRev}";
     #src = customCpuVexRiscv;
 
-    buildid = "2021030800"; # GitHub actions build of 65292ea2b2aa6c,
+    buildid = "2021071800"; # GitHub actions build of a978c2f41e7ab0,
                             # which is based on upstream
-                            # 7f9db486d40206 of Mar 5, 2021, 9:48 PM
-                            # GMT+1
+                            # a17f86c94c11da of Mar 5, 2021, 9:48 PM
+                            # GMT+1. However, upstream did not update
+                            # the VexRiscv submodule, so using the
+                            # latest master for that instead. For more
+                            # information, checkout
+                            # lschuermann/litex-vexriscv-custom
     version = "custom-patched-${buildid}";
     src = builtins.fetchTarball {
       url = "https://github.com/lschuermann/litex-vexriscv-custom/releases/download/${buildid}/generated.tar.gz";
-      sha256 = "1hm0x9ss0frcy6wy65chnqvqln6bbb048jd388fcx98hll94d6xs";
+      sha256 = "sha256:1s9l64vha664x0lmn8r50kg75026xjqz107646g854vfg8g7wcld";
     };
 
     doCheck = false;

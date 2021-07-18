@@ -4,14 +4,14 @@ with python3Packages;
 
 buildPythonPackage rec {
   pname = "litex";
-  rev = "b55af2156ba338"; # litex master of Apr 21, 2021, 1:38 PM GMT+2
+  rev = "e0d5a7bff55923"; # litex master of Jul 15, 2021, 7:00 PM GMT+2
   version = "git-${rev}";
 
   src = fetchFromGitHub {
     owner = "enjoy-digital";
     repo = "litex";
     rev = rev;
-    sha256 = "1y3s5dxw2jwxklyj1b7z72gmc5cs2kbiqqqpn45rfs14dxnmc73v";
+    sha256 = "sha256-wPhrnPdRDhNbU2qRUz9I2zkcDc92JnPQZfPDdpCEcyU=";
   };
 
   patches = [
