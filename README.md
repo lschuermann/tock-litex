@@ -70,7 +70,7 @@ If desired, Xilinx Vivado can be made available in the shell by adding
 the appropriate argument:
 
 ```
-$ nix-shell --arg withVivado true shell.nix
+$ nix-shell --arg enableVivado true shell.nix
 ```
 
 ## Build instructions
