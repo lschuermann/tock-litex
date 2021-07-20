@@ -93,6 +93,15 @@ wrapProgram $out/opt/Vivado/2020.1/tps/lnx64/jre9.0.4/bin/java --prefix LD_LIBRA
 sed -i -- 's|`basename "\$0"`|vivado|g' $out/opt/Vivado/2020.1/bin/.vivado-wrapped
 sed -i -- 's|/bin/touch|/usr/bin/env touch|g' $out/opt/Vivado/2020.1/scripts/ISEWrap.sh
 
+# Remove all created references to $extracted, to avoid making it a runtime dependency
+#
+# If this package is upgraded to a newer Vivado version, this must be verified to be
+# effective using nix why-depends <this built derivation> $extracted
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/Vivado_2020.1/data/instRecord.dat
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/Vivado_2020.1/xinstall.log
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/xic/data/instRecord.dat
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/DocNav/data/instRecord.dat
+
 # Add Vivado and xsdk to bin folder
 mkdir $out/bin
 ln -s $out/opt/Vivado/2020.1/bin/vivado $out/bin/vivado
