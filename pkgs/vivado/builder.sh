@@ -22,7 +22,7 @@ Product=Vivado
 Destination=$out/opt
 
 # Choose the Products/Devices the you would like to install.
-Modules=Virtex UltraScale+ HBM:1,Zynq UltraScale+ MPSoC:1,DocNav:1,Kintex UltraScale:1,Zynq-7000:1,Spartan-7:1,System Generator for DSP:0,Artix-7:1,Virtex UltraScale+:1,Kintex-7:1,Kintex UltraScale+:1,Model Composer:0
+Modules=Zynq UltraScale+ MPSoC:1,DocNav:1,System Generator:1,Kintex-7:1,Virtex UltraScale+:1,Zynq-7000:1,Kintex UltraScale+:1,Model Composer and System Generator:1,Spartan-7:1,Kintex UltraScale:1,Artix-7:1
 
 # Choose the post install scripts you'd like to run as part of the
 # finalization step. Please note that some of these scripts may require
@@ -66,42 +66,42 @@ done
 
 
 # Patch installed files
-patchShebangs $out/opt/Vivado/2020.1/bin
+patchShebangs $out/opt/Vivado/2020.2/bin
 echo "Shebangs patched"
 
 # Hack around lack of libtinfo in NixOS
-ln -s $ncurses/lib/libncursesw.so.6 $out/opt/Vivado/2020.1/lib/lnx64.o/libtinfo.so.5
+ln -s $ncurses/lib/libncursesw.so.6 $out/opt/Vivado/2020.2/lib/lnx64.o/libtinfo.so.5
 
 # Patch ELFs
-for f in $out/opt/Vivado/2020.1/bin/unwrapped/lnx64.o/*
+for f in $out/opt/Vivado/2020.2/bin/unwrapped/lnx64.o/*
 do
     patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $f || true
 done
 
-patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/opt/Vivado/2020.1/lnx64/tools/eclipse/eclipse
+patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/opt/Vivado/2020.2/lnx64/tools/eclipse/eclipse
 
-patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/opt/Vivado/2020.1/tps/lnx64/jre9.0.4/bin/java
+patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" $out/opt/Vivado/2020.2/tps/lnx64/jre11.0.2/bin/java
 
 echo "ELFs patched"
 
-wrapProgram $out/opt/Vivado/2020.1/bin/vivado --prefix LD_LIBRARY_PATH : "$libPath"
-wrapProgram $out/opt/Vivado/2020.1/lnx64/tools/eclipse/eclipse --prefix LD_LIBRARY_PATH : "$libPath"
-wrapProgram $out/opt/Vivado/2020.1/tps/lnx64/jre9.0.4/bin/java --prefix LD_LIBRARY_PATH : "$libPath"
+wrapProgram $out/opt/Vivado/2020.2/bin/vivado --prefix LD_LIBRARY_PATH : "$libPath"
+wrapProgram $out/opt/Vivado/2020.2/lnx64/tools/eclipse/eclipse --prefix LD_LIBRARY_PATH : "$libPath"
+wrapProgram $out/opt/Vivado/2020.2/tps/lnx64/jre11.0.2/bin/java --prefix LD_LIBRARY_PATH : "$libPath"
 
 # wrapProgram on its own will not work because of the way the Vivado
 # script runs ./launch. Therefore, we need even more patches...
-sed -i -- 's|`basename "\$0"`|vivado|g' $out/opt/Vivado/2020.1/bin/.vivado-wrapped
-sed -i -- 's|/bin/touch|/usr/bin/env touch|g' $out/opt/Vivado/2020.1/scripts/ISEWrap.sh
+sed -i -- 's|`basename "\$0"`|vivado|g' $out/opt/Vivado/2020.2/bin/.vivado-wrapped
+sed -i -- 's|/bin/touch|/usr/bin/env touch|g' $out/opt/Vivado/2020.2/scripts/ISEWrap.sh
 
 # Remove all created references to $extracted, to avoid making it a runtime dependency
 #
 # If this package is upgraded to a newer Vivado version, this must be verified to be
 # effective using nix why-depends <this built derivation> $extracted
-sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/Vivado_2020.1/data/instRecord.dat
-sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/Vivado_2020.1/xinstall.log
-sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/xic/data/instRecord.dat
-sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.1-extracted|g" $out/opt/.xinstall/DocNav/data/instRecord.dat
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.2-extracted|g" $out/opt/.xinstall/Vivado_2020.2/data/instRecord.dat
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.2-extracted|g" $out/opt/.xinstall/Vivado_2020.2/xinstall.log
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.2-extracted|g" $out/opt/.xinstall/xic/data/instRecord.dat
+sed -i -- "s|$extracted|/nix/store/00000000000000000000000000000000-vivado-2020.2-extracted|g" $out/opt/.xinstall/DocNav/data/instRecord.dat
 
 # Add Vivado and xsdk to bin folder
 mkdir $out/bin
-ln -s $out/opt/Vivado/2020.1/bin/vivado $out/bin/vivado
+ln -s $out/opt/Vivado/2020.2/bin/vivado $out/bin/vivado

@@ -4,17 +4,17 @@
 
 let
   extractedSource = stdenv.mkDerivation rec {
-    name = "vivado-2020.1-extracted";
+    name = "vivado-2020.2-extracted";
 
     src = requireFile rec {
-      name = "Xilinx_Unified_2020.1_0602_1208.tar.gz";
-      url = "https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2020.1_0602_1208.tar.gz";
-      sha256 = "1sz34wklz2ywfkyxbl2lvmb1khza2y6kmf9s8p2618pcc4dgiq59";
+      name = "Xilinx_Unified_2020.2_1118_1232.tar.gz";
+      url = "https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2020.2_1118_1232.tar.gz";
+      sha256 = "08pdgqvhkkbi2lclz3420nr4b62yq6njvbzz5vgkiz1g814jf04a";
       message = ''
         Unfortunately, we cannot download file ${name} automatically.
         Please go to ${url} to download it yourself, and add it to the Nix store.
 
-        Notice: given that this is a large (35.51GB) file, the usual methods of addings files
+        Notice: given that this is a large (44GB) file, the usual methods of addings files
         to the Nix store (nix-store --add-fixed / nix-prefetch-url file:///) will likely not work.
         Use the method described here: https://nixos.wiki/wiki/Cheatsheet#Adding_files_to_the_store
       '';
@@ -27,17 +27,17 @@ let
       source $stdenv/setup
 
       mkdir -p $out/
-      tar -xvf $src --strip-components=1 -C $out/ Xilinx_Unified_2020.1_0602_1208/
+      tar -xvf $src --strip-components=1 -C $out/ Xilinx_Unified_2020.2_1118_1232/
 
       patchShebangs $out/
       patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-        $out/tps/lnx64/jre9.0.4/bin/java
+        $out/tps/lnx64/jre11.0.2/bin/java
       sed -i -- 's|/bin/rm|rm|g' $out/xsetup
     '';
   };
 
   vivadoPackage = stdenv.mkDerivation rec {
-    name = "vivado-2020.1";
+    name = "vivado-2020.2";
 
     nativeBuildInputs = [ zlib ];
     buildInputs = [ patchelf procps ncurses makeWrapper ];
