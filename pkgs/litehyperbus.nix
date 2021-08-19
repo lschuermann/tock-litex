@@ -1,17 +1,16 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
   pname = "litehyperbus";
-  rev = "b7d57e9c63b1f2"; # litehyperbus master of Jun 14, 2021, 8:03 AM GMT+2
-  version = "git-${rev}";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "litex-hub";
-    repo = pname;
-    rev = rev;
-    sha256 = "sha256-Xe3octAF+E124J5+1EQnSObuKqybu8SU/Ig38hWRcgE=";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
 
   buildInputs = [

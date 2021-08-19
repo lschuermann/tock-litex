@@ -1,18 +1,18 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
   pname = "litedram";
-  rev = "4326fe7f36699a"; # litedram master of Jul 13, 2021, 2:57 PM GMT+2
-  version = "git-${rev}";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "enjoy-digital";
-    repo = "litedram";
-    rev = rev;
-    sha256 = "sha256-CUj5vQAT0eB1qT5+6kz5x/3/hty/UgqKwizoIx8BC6g=";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
+
 
   buildInputs = [
     litex pyyaml migen

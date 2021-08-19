@@ -1,16 +1,16 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
-  pname = "pythondata-software-compiler-rt";
-  version = "2020.08";
+  pname = "pythondata-software-compiler_rt";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "litex-hub";
-    repo = "pythondata-software-compiler_rt";
-    rev = version;
-    sha256 = "0b65dj95418j4pjqqkqjq5npnn1ih1789ba9575kxcljgj7r8xb7";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
 
   doCheck = false;

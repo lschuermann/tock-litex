@@ -1,4 +1,4 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 

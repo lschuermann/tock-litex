@@ -1,17 +1,16 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
   pname = "litex";
-  rev = "e0d5a7bff55923"; # litex master of Jul 15, 2021, 7:00 PM GMT+2
-  version = "git-${rev}";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "enjoy-digital";
-    repo = "litex";
-    rev = rev;
-    sha256 = "sha256-wPhrnPdRDhNbU2qRUz9I2zkcDc92JnPQZfPDdpCEcyU=";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
 
   patches = [

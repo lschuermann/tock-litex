@@ -1,17 +1,18 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
   pname = "migen";
-  version = "0.9.2";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "m-labs";
-    repo = "migen";
-    rev = version;
-    sha256 = "1kq11if64zj84gv4w1q7l16fp17xjxl2wv5hc9dibr1z3m1gy67l";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
+
 
   buildInputs = [
     colorama

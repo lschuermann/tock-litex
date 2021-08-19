@@ -1,18 +1,18 @@
-{ fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
   pname = "litescope";
-  rev = "72c9930705ccc5"; # litescope master of May 3, 2021, 12:12 PM GMT+2
-  version = "git-${rev}";
+  version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
-    owner = "enjoy-digital";
-    repo = "litescope";
-    rev = rev;
-    sha256 = "sha256-s0JrgAoxYgNOE9SEOWV869yqAeBEfiXSslKKhul8qhY=";
+    owner = pkgMeta.github_user;
+    repo = pkgMeta.github_repo;
+    rev = pkgMeta.git_revision;
+    sha256 = pkgMeta.github_archive_nix_hash;
   };
+
 
   buildInputs = [
     litex
