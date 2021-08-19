@@ -26,6 +26,10 @@ in
       # For simulation
       pythondata-misc-tapcfg libevent json_c verilator
 
+      # For ECP5 bitstream builds
       yosys nextpnr icestorm
+
+      # For executing the maintenance scripts of this repository
+      python3 python3Packages.toml
     ] ++ (if enableVivado then [(pkgs.callPackage ./pkgs/vivado {})] else []);
   }
