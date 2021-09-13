@@ -31,5 +31,8 @@ in
 
       # For executing the maintenance scripts of this repository
       python3 python3Packages.toml
+
+      # For LiteX development
+      python3Packages.pytest python3Packages.pytest-xdist python3Packages.pytest-subtests
     ] ++ (if enableVivado then [(pkgs.callPackage ./pkgs/vivado {})] else []);
   }
