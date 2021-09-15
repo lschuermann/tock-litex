@@ -1,12 +1,12 @@
 # A nix-shell expression with the collection of build inputs for the
 # various board expressions. Can be helpful when debugging LiteX.
 
-{ pkgs ? (import <nixpkgs> {}), enableVivado ? false }:
+{ pkgs ? (import <nixpkgs> {}), enableVivado ? false, skipPkgChecks ? true }:
 
 with pkgs;
 
 let
-  litexPkgs = import ./pkgs { inherit pkgs; };
+  litexPkgs = import ./pkgs { inherit pkgs; skipChecks = skipPkgChecks; };
 
 in
   pkgs.mkShell {

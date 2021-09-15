@@ -1,9 +1,9 @@
-pkgMeta: doChecks: { lib, fetchFromGitHub, python3Packages }:
+pkgMeta: { fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
-  pname = "liteiclink" + (lib.optionalString (!doChecks) "-unchecked");
+  pname = "pythondata-cpu-serv";
   version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
@@ -13,9 +13,5 @@ buildPythonPackage rec {
     sha256 = pkgMeta.github_archive_nix_hash;
   };
 
-  buildInputs = [
-    litex migen
-  ];
-
-  doCheck = doChecks;
+  doCheck = false;
 }

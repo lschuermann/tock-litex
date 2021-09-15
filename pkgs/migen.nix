@@ -17,4 +17,6 @@ buildPythonPackage rec {
   buildInputs = [
     colorama
   ];
+
+  doChecks = true;
 }

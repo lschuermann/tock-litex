@@ -1,9 +1,9 @@
-pkgMeta: { fetchFromGitHub, python3Packages }:
+pkgMeta: doChecks: { lib, fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
-  pname = "liteeth";
+  pname = "liteeth" + (lib.optionalString (!doChecks) "-unchecked");
   version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
@@ -17,6 +17,11 @@ buildPythonPackage rec {
     litex
   ];
 
-  # TOOD: Fix tests
-  doCheck = false;
+  checkInputs = with python3Packages; [
+    # Some of these are really only required because litex-boards
+    # needs them for importing all targets in its __init__.py.
+    liteiclink migen litex-boards litescope litedram
+  ];
+
+  doCheck = doChecks;
 }

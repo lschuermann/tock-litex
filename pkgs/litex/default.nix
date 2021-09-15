@@ -1,9 +1,9 @@
-pkgMeta: { fetchFromGitHub, python3Packages }:
+pkgMeta: doChecks: { lib, fetchFromGitHub, python3Packages }:
 
 with python3Packages;
 
 buildPythonPackage rec {
-  pname = "litex";
+  pname = "litex" + (lib.optionalString (!doChecks) "-unchecked");
   version = pkgMeta.git_revision;
 
   src = fetchFromGitHub {
@@ -17,7 +17,7 @@ buildPythonPackage rec {
     ./0001-Add-Tock-VexRiscv-cpu-variants.patch
   ];
 
-  propagatedBuildInputs = [
+  propagatedBuildInputs = with python3Packages; [
     # LLVM's compiler-rt data downloaded and importable as a python
     # package
     pythondata-software-compiler-rt
@@ -25,5 +25,9 @@ buildPythonPackage rec {
     pyserial migen requests colorama
   ];
 
-  doCheck = false;
+  checkInputs = with python3Packages; [
+    litedram
+  ];
+
+  doCheck = doChecks;
 }
