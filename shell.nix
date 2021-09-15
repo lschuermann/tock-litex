@@ -30,7 +30,7 @@ in
       yosys nextpnr icestorm
 
       # For executing the maintenance scripts of this repository
-      python3 python3Packages.toml
+      python3 python3Packages.toml python3Packages.GitPython
 
       # For LiteX development
       python3Packages.pytest python3Packages.pytest-xdist python3Packages.pytest-subtests
