@@ -9,7 +9,7 @@ let
   litexPkgs = import ./pkgs { inherit pkgs; };
 
 in
-  stdenv.mkDerivation {
+  pkgs.mkShell {
     name = "litex-shell";
     buildInputs = with litexPkgs; [
       migen litex openocd
