@@ -2,11 +2,11 @@ let
   pinnedPkgs =
     import (builtins.fetchTarball {
       # Descriptive name to make the store path easier to identify
-      name = "nixos-21.05-2021-07-18";
-      # Commit hash for nixos-21.05 as of 2021-07-18
-      url = "https://github.com/nixos/nixpkgs/archive/b2f87e0043aaf3f0f05cc983bd6aa80a616b8352.tar.gz";
+      name = "nixos-unstable-2021-09-24";
+      # Commit hash for nixos-unstable as of 2021-09-24
+      url = "https://github.com/nixos/nixpkgs/archive/51bcdc4cdaac48535dabf0ad4642a66774c609ed.tar.gz";
       # Hash obtained using `nix-prefetch-url --unpack <url>`
-      sha256 = "sha256:1mkg49dxkzkci6a6vh0cly98lh4mmg7fqdxi7fgjbps1y8bh7i2r";
+      sha256 = "0zpf159nlpla6qgxfgb2m3c2v09fz8jilc21zwymm59qrq6hxscm";
     }) {};
 
   zipDeriv = name: deriv: zipPath name deriv.version deriv;
@@ -41,7 +41,7 @@ let
   };
 
   lib = pinnedPkgs.lib;
-  litexPkgs = import ./pkgs { pkgs = pinnedPkgs; };
+  litexPkgs = import ./litex-pkgs.nix { pkgs = pinnedPkgs; skipLitexPkgChecks = false;};
 
 in
   { enableVivado ? true }:

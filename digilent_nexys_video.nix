@@ -1,18 +1,21 @@
 # Nix expression to build LiteX for a Digilent Nexys Video board.
 
 let
-  litexPkgs = pkgs: import ./pkgs { pkgs = pkgs; };
+  litexPkgs = pkgs: import ./litex-pkgs.nix {
+    pkgs = pkgs;
+    skipLitexPkgChecks = false;
+  };
   support = import ./support.nix;
 
   # This will try to build a Xilinx Vivado 2020.01 installation. Feel
   # free to avoid evaluating this by either overriding the `vivado`
   # argument with a derivation providing a "bin/vivado" executable, or
   # set `buildBitstream` to `false`.
-  vivadoDerivation = pkgs: pkgs.callPackage ./pkgs/vivado {};
+  nixLitexVivado = pkgs: (litexPkgs pkgs).vivado;
 
 in
   { pkgs ? (import <nixpkgs> {})
-  , vivado ? (vivadoDerivation pkgs)
+  , vivado ? (nixLitexVivado pkgs)
   , buildBitstream ? false
   , vendorDependencies ? false
   }:

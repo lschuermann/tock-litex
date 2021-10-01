@@ -1,18 +1,20 @@
 # A nix-shell expression with the collection of build inputs for the
 # various board expressions. Can be helpful when debugging LiteX.
 
-{ pkgs ? (import <nixpkgs> {}), enableVivado ? false, skipPkgChecks ? true }:
+{ pkgs ? (import <nixpkgs> {}), enableVivado ? false, skipLitexPkgChecks ? true }:
 
 with pkgs;
 
 let
-  litexPkgs = import ./pkgs { inherit pkgs; skipChecks = skipPkgChecks; };
+  litexPkgs = import ./litex-pkgs.nix { inherit pkgs skipLitexPkgChecks; };
 
 in
   pkgs.mkShell {
     name = "litex-shell";
     buildInputs = with litexPkgs; [
-      migen litex openocd
+      python3Packages.migen
+      litex
+      openocd
       litex-boards
       litedram
       liteeth
@@ -30,9 +32,9 @@ in
       yosys nextpnr icestorm
 
       # For executing the maintenance scripts of this repository
-      python3 python3Packages.toml python3Packages.GitPython
+      maintenance
 
       # For LiteX development
       python3Packages.pytest python3Packages.pytest-xdist python3Packages.pytest-subtests
-    ] ++ (if enableVivado then [(pkgs.callPackage ./pkgs/vivado {})] else []);
+    ] ++ (if enableVivado then lib.singleton litexPkgs.vivado else []);
   }
