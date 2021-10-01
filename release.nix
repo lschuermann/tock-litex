@@ -17,13 +17,32 @@ let
     builder = pinnedPkgs.writeScript "build_${name}.zip.sh" ''
       #! ${pinnedPkgs.bash}/bin/bash
 
-      if [ ! -d "${deriv}" ]; then
-        echo "Derivation ${deriv} is not a directory"
+      # Support unpacking compressed archives with tar
+      export PATH="${pinnedPkgs.gzip}/bin/:${pinnedPkgs.xz}/bin/:$PATH"
+
+      # Try to identify the type output of the derivation. If it's
+      # already a ZIP, simply copy that. If it's a know archive we can
+      # unpack, unpack and repack as ZIP. If it's a directoy, ZIP it.
+      MIME_TYPE="$(${pinnedPkgs.file}/bin/file -z --brief --mime-type "${deriv}")"
+      echo "zipPath: input has mime type $MIME_TYPE" >&2
+
+      if [[ "$MIME_TYPE" == "inode/directory" ]]; then
+        echo "zipPath: zipping directory to $out" >&2
+        pushd "${deriv}"
+        ${pinnedPkgs.zip}/bin/zip -r "$out" .
+        popd
+      elif [[ "$MIME_TYPE" == "application/x-tar" ]]; then
+        # This catches compressed tars as well
+        echo "zipPath: unpacking tar archive and repacking as ZIP" >&2
+        ${pinnedPkgs.coreutils}/bin/mkdir unpack
+        pushd unpack
+        ${pinnedPkgs.gnutar}/bin/tar -xvf "${deriv}"
+        ${pinnedPkgs.zip}/bin/zip -r "$out" .
+        popd
+      else
+        echo "zipPath: Unknown format, cannot continue." >&2
         exit 1
       fi
-
-      cd "${deriv}"
-      ${pinnedPkgs.zip}/bin/zip -r "$out" .
     '';
   };
 
