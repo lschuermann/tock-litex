@@ -12,9 +12,11 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
 
-    - run: nix-build --arg enableVivado false release.nix
+    - name: Perform a release build with proprietary toolchain steps disabled
+      run: nix-build --arg enableVivado false release.nix
 
-    - uses: actions/upload-artifact@v2
+    - name: Upload built results
+      uses: actions/upload-artifact@v2
       with:
         name: release-build-novivado
         # Glob required here, see https://github.com/actions/upload-artifact/issues/92
