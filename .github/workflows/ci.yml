@@ -19,3 +19,28 @@ jobs:
         name: release-build-novivado
         # Glob required here, see https://github.com/actions/upload-artifact/issues/92
         path: 'result*/*'
+
+  ci-check-requirements-txt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+
+    - uses: cachix/install-nix-action@v12
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Regenerate requirements.txt
+      run: |
+        nix-shell \
+          --arg skipLitexPkgChecks true \
+          --arg enableVivado false \
+          --run "render_requirements_txt.py ./litex-pkgs.toml ./requirements.txt"
+
+    - name: Check whether repository is clean
+      run: |
+        if [[ "$(git diff --stat)" != "" ]]; then
+          echo "requirements.txt is not up to date, needs to be regenerated!" >&2
+          git status
+        else
+          echo "requirements.txt is up to date." >&2
+        fi
