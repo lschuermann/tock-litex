@@ -22,6 +22,16 @@ compatible bitstreams.
 
 Currently included boards are:
 - Digilent Arty A7-35T: [digilent_arty.nix](./digilent_arty.nix)
+- Digilent Arty A7-100T: [digilent_arty.nix](./digilent_arty.nix)
+- Digilent Nexys Video: [digilent_nexys_video.nix](./digilent_nexys_video.nix),
+  no Tock board definition yet.
+
+The aforementioned files are Nix derivations which define how bitstreams are
+built. Essentially they simply invoke the respective
+[litex-boards](https://github.com/litex-hub/litex-boards) target definitions
+with a set of options such that the resulting SoCs match Tock's
+expectations. They are a good reference for checking the litex-boards's target
+options regardless of whether you're using Nix.
 
 ## Prebuilt artifacts and bitstreams
 

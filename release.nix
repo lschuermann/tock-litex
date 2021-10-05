@@ -51,6 +51,13 @@ let
       pkgs = pinnedPkgs;
       buildBitstream = enableVivado;
       vendorDependencies = true;
+      variant = "a7-35t";
+    };
+    "digilent_arty_a7-100t" = (import ./digilent_arty.nix) {
+      pkgs = pinnedPkgs;
+      buildBitstream = enableVivado;
+      vendorDependencies = true;
+      variant = "a7-100t";
     };
     "digilent_nexys_video" = (import ./digilent_nexys_video.nix) {
       pkgs = pinnedPkgs;

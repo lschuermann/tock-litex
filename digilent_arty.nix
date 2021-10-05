@@ -17,15 +17,26 @@ let
   # set `buildBitstream` to `false`.
   nixLitexVivado = pkgs: (litexPkgs pkgs).vivado;
 
+  # This is not only a purposeless translation of strings removing
+  # the t at the end, but also throws an error for invalid variants.
+  litexVariantString = variant:
+    if variant == "a7-35t" then
+      "a7-35"
+    else if variant == "a7-100t" then
+      "a7-100"
+    else
+      abort "Unknown Arty-A7 variant string!";
+
 in
   { pkgs ? (import <nixpkgs> {})
   , vivado ? (nixLitexVivado pkgs)
   , buildBitstream ? false
   , vendorDependencies ? false
+  , variant ? "a7-35t"
   }:
 
   pkgs.stdenv.mkDerivation {
-    pname = "litex-arty";
+    pname = "litex-arty-${variant}";
     version = (litexPkgs pkgs).litex-boards.version;
 
     src = (litexPkgs pkgs).litex-boards.src;
@@ -52,6 +63,7 @@ in
       "--timer-uptime"
       "--integrated-rom-size=0xb000"
       "--with-ethernet"
+      "--variant=${litexVariantString variant}"
     ] ++ (
       # Only build the bitstream if the user explicitly requests it
       if buildBitstream then [ "--build" ] else [])
@@ -66,3 +78,4 @@ in
       cp -rf ./build/digilent_arty/* $out/
     '';
   }
+
