@@ -1,8 +1,8 @@
 [litex]
 github_user = "lschuermann"
 github_repo = "litex"
-git_revision = "62d2c2893305aaa0776dc2363531bd326b2d9d28"
-github_archive_nix_hash = "1aybsf3f6y9lcnl05iygg16fis2xfqc1f9l5m67g7i1h4l9c9icq"
+git_revision = "3325aabd46dd4698903f0647ac154fef8ba32b60"
+github_archive_nix_hash = "0qyb6vqg0fn9qdmdqax1sqsmd5c7s0j725yipmp7lfk7c6dv1qz3"
 
 [litex-boards]
 github_user = "litex-hub"
