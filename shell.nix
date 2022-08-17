@@ -23,7 +23,7 @@ in
       litespi
       litepcie
       litehyperbus
-      pythondata-cpu-vexriscv pkgsCross.riscv64.buildPackages.gcc gnumake
+      pythondata-cpu-vexriscv pkgsCross.riscv64-embedded.buildPackages.gcc gnumake
 
       # For simulation
       pythondata-misc-tapcfg libevent json_c zlib verilator
