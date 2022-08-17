@@ -79,7 +79,14 @@ in
     # pythondata-cpu-vexriscv package with patches applied)
     ++ [{
       name = "pythondata-cpu-vexriscv_patched.zip";
-      path = "${zipPath "pythondata-cpu-vexriscv_patched.zip" "${litexPkgs.pythondata-cpu-vexriscv.version}" "${litexPkgs.pythondata-cpu-vexriscv.src}"}";
+      path = "${
+        zipPath
+          "pythondata-cpu-vexriscv_patched.zip"
+          "${litexPkgs.pythondata-cpu-vexriscv.version}"
+          "${litexPkgs.pythondata-cpu-vexriscv.src.overrideAttrs (old: old // {
+            fixupPhase = "true";
+          })}"
+      }";
     }]
 
     # Warn if building bitstreams using Vivado has been disabled. The
