@@ -2,11 +2,11 @@ let
   pinnedPkgs =
     import (builtins.fetchTarball {
       # Descriptive name to make the store path easier to identify
-      name = "nixos-unstable-2021-09-24";
-      # Commit hash for nixos-unstable as of 2021-09-24
-      url = "https://github.com/nixos/nixpkgs/archive/51bcdc4cdaac48535dabf0ad4642a66774c609ed.tar.gz";
+      name = "nixos-22.05-2022-08-15";
+      # Commit hash for nixos-22.05 as of 2022-08-15
+      url = "https://github.com/nixos/nixpkgs/archive/3d47bbaa26e7a771059d828eecf3bd8bf28a8b0f.tar.gz";
       # Hash obtained using `nix-prefetch-url --unpack <url>`
-      sha256 = "0zpf159nlpla6qgxfgb2m3c2v09fz8jilc21zwymm59qrq6hxscm";
+      sha256 = "0xnk777bwrdw2zklnhs4sq6rgzb4gn002ybwlizj35g3vy5rppvs";
     }) {};
 
   zipDeriv = name: deriv: zipPath name deriv.version deriv;
