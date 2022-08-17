@@ -1,0 +1,25 @@
+From c9e6d9254388b0ff23e054678ae8d1ecfb61dfde Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Wed, 17 Nov 2021 13:17:02 +0100
+Subject: [PATCH 3/5] GitHub actions CI: install ZeroMQ with headers
+
+---
+ .github/workflows/ci.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 308939f4..f3d972c6 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -18,7 +18,7 @@ jobs:
+         run: |
+           sudo apt-get install wget build-essential python3 ninja-build
+           sudo apt-get install libevent-dev libjson-c-dev flex bison
+-          sudo apt-get install libfl-dev libfl2 zlibc zlib1g-dev
++          sudo apt-get install libfl-dev libfl2 zlibc zlib1g-dev libzmq3-dev
+           pip3 install setuptools
+           pip3 install requests
+           pip3 install pexpect
+-- 
+2.36.0
+
