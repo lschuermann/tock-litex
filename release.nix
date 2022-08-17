@@ -89,6 +89,24 @@ in
       }";
     }]
 
+    # Include the patched litex package, which contains support for the new
+    # TockSecureIMC CPU variants:
+    ++ [{
+      name = "litex_patched.zip";
+      path = "${
+        zipPath
+          "litex_patched.zip"
+          "${litexPkgs.litex.version}"
+          "${litexPkgs.litex-unchecked.overrideAttrs (old: old // {
+            phases = [ "unpackPhase" "patchPhase" "installPhase" ];
+            installPhase = ''
+              mkdir -p $out
+              cp -vr ./ $out/
+            '';
+          })}"
+      }";
+    }]
+
     # Warn if building bitstreams using Vivado has been disabled. The
     # release is incomplete and should not be published then.
     ++ (if (!enableVivado) then [{
