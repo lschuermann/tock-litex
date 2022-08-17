@@ -64,9 +64,10 @@ in
       "--integrated-rom-size=0xb000"
       "--with-ethernet"
       "--variant=${litexVariantString variant}"
+      "--build"
     ] ++ (
       # Only build the bitstream if the user explicitly requests it
-      if buildBitstream then [ "--build" ] else [])
+      if !buildBitstream then [ "--no-compile-gateware" ] else [])
     );
 
     installPhase = (

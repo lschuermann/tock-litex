@@ -28,11 +28,6 @@ let
     )
   );
 
-  # Definition of the LiteX packages and associated versions and
-  # hashes. This format is defined by
-  # [nix-litex](https://git.sr.ht/~lschuermann/nix-litex).
-  pkgMetas = fromTOML pkgs (builtins.readFile ./litex-pkgs.toml);
-
   # Alternative URLs (mirrors) for the nix-litex repository are
   #
   # - https://github.com/lschuermann/nix-litex.git
@@ -40,11 +35,11 @@ let
   nixLitexSrc = builtins.fetchGit {
     url = "https://git.sr.ht/~lschuermann/nix-litex";
     ref = "main";
-    rev = "24060aa33f38d619992806851d048d15f3a56546";
+    rev = "b9498679d45b9c6a7583218422c7d8d4746d0a78";
   };
 
   litexPackages = import "${nixLitexSrc}/pkgs" {
-    inherit pkgs pkgMetas;
+    inherit pkgs;
     skipChecks = skipLitexPkgChecks;
   };
 
@@ -61,9 +56,22 @@ let
     in
       # Now, inject our custom packages in the resulting attribute set
       upstream // {
-        pythondata-cpu-vexriscv = self.callPackage (
-          import ./pythondata-cpu-vexriscv.nix pkgMetas.pythondata-cpu-vexriscv
-        ) { };
+        # Override the CPU to add the TockSecureIMC variant patch:
+        pythondata-cpu-vexriscv = (upstream.pythondata-cpu-vexriscv.override ({
+          generated = upstream.pythondata-cpu-vexriscv.generated.overrideAttrs (prev: {
+            patches = (prev.patches or [ ]) ++ [
+              ./pythondata-cpu-vexriscv_add_TockSecureIMC_CPU_OldPMPPlugin.patch
+            ];
+          });
+        }));
+
+        # Override LiteX to include support for the TockSecureIMC
+        # CPU variant:
+        litex-unchecked = upstream.litex-unchecked.overrideAttrs (prev: {
+          patches = (prev.patches or [ ]) ++ [
+            ./litex_add_TockSecureIMC_CPU.patch
+          ];
+        });
       };
 
   applyOverlay = python: python.override {
@@ -71,6 +79,8 @@ let
   };
 
   overlay = self: super: {
+    sbt-mkDerivation = litexPackages.packages.sbt-mkDerivation;
+
     python3 = applyOverlay super.python3;
     python37 = applyOverlay super.python37;
     python38 = applyOverlay super.python38;

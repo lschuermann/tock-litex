@@ -48,9 +48,10 @@ in
       "--timer-uptime"
       "--integrated-rom-size=0xb000"
       "--with-ethernet"
+      "--build"
     ] ++ (
       # Only build the bitstream if the user explicitly requests it
-      if buildBitstream then [ "--build" ] else [])
+      if !buildBitstream then [ "--no-compile-gateware" ] else [])
     );
 
     installPhase = (

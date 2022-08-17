@@ -1,0 +1,64 @@
+From b9665b72feb1498a4e05c0b3d11fa4f586ef8952 Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Sun, 7 Aug 2022 17:18:23 +0200
+Subject: [PATCH] Add TockSecureIMC CPU variant with OldPMPPlugin
+
+---
+ pythondata_cpu_vexriscv/verilog/Makefile                  | 8 +++++++-
+ .../verilog/src/main/scala/vexriscv/GenCoreDefault.scala  | 4 ++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/pythondata_cpu_vexriscv/verilog/Makefile b/pythondata_cpu_vexriscv/verilog/Makefile
+index 7f042ff..89d6290 100644
+--- a/pythondata_cpu_vexriscv/verilog/Makefile
++++ b/pythondata_cpu_vexriscv/verilog/Makefile
+@@ -1,6 +1,6 @@
+ SRC := ${shell find . -type f -name \*.scala}
+ 
+-all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_LiteDebugHwBP.v VexRiscv_IMAC.v VexRiscv_IMACDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_MinDebugHwBP.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_FullCfu.v VexRiscv_FullCfuDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v VexRiscv_Secure.v VexRiscv_SecureDebug.v
++all: VexRiscv.v VexRiscv_Debug.v VexRiscv_Lite.v VexRiscv_LiteDebug.v VexRiscv_LiteDebugHwBP.v VexRiscv_IMAC.v VexRiscv_IMACDebug.v VexRiscv_Min.v VexRiscv_MinDebug.v VexRiscv_MinDebugHwBP.v VexRiscv_Full.v VexRiscv_FullDebug.v VexRiscv_FullCfu.v VexRiscv_FullCfuDebug.v VexRiscv_Linux.v VexRiscv_LinuxDebug.v VexRiscv_LinuxNoDspFmax.v VexRiscv_Secure.v VexRiscv_SecureDebug.v VexRiscv_TockSecureIMC.v VexRiscv_TockSecureIMCDebug.v
+ 
+ ifeq (,$(wildcard ext/VexRiscv/.github))
+ $(error Must init/update submodule to get VexRiscv source. Run "git submodule update --init")
+@@ -62,3 +62,9 @@ VexRiscv_Secure.v: $(SRC)
+ 
+ VexRiscv_SecureDebug.v: $(SRC)
+ 	sbt compile "runMain vexriscv.GenCoreDefault --pmpRegions 16 --pmpGranularity 256 --csrPluginConfig secure -d --hardwareBreakpointCount 2 --outputFile VexRiscv_SecureDebug"
++
++VexRiscv_TockSecureIMC.v: $(SRC)
++	sbt compile "runMain vexriscv.GenCoreDefault --pmpOld true --csrPluginConfig secure --compressedGen true --mulDiv true --outputFile VexRiscv_TockSecureIMC"
++
++VexRiscv_TockSecureIMCDebug.v: $(SRC)
++	sbt compile "runMain vexriscv.GenCoreDefault --pmpOld true --csrPluginConfig secure --compressedGen true --mulDiv true -d --outputFile VexRiscv_TockSecureIMCDebug"
+diff --git a/pythondata_cpu_vexriscv/verilog/src/main/scala/vexriscv/GenCoreDefault.scala b/pythondata_cpu_vexriscv/verilog/src/main/scala/vexriscv/GenCoreDefault.scala
+index 397192b..2a16ab9 100644
+--- a/pythondata_cpu_vexriscv/verilog/src/main/scala/vexriscv/GenCoreDefault.scala
++++ b/pythondata_cpu_vexriscv/verilog/src/main/scala/vexriscv/GenCoreDefault.scala
+@@ -27,6 +27,7 @@ case class ArgConfig(
+   dCacheSize : Int = 4096,
+   pmpRegions : Int = 0,
+   pmpGranularity : Int = 256,
++  pmpOld : Boolean = true,
+   mulDiv : Boolean = true,
+   cfu : Boolean = false,
+   atomics: Boolean = false,
+@@ -67,6 +68,7 @@ object GenCoreDefault{
+       opt[Int]("dCacheSize")     action { (v, c) => c.copy(dCacheSize = v) } text("Set data cache size, 0 mean no cache")
+       opt[Int]("pmpRegions")    action { (v, c) => c.copy(pmpRegions = v)   } text("Number of PMP regions, 0 disables PMP")
+       opt[Int]("pmpGranularity")    action { (v, c) => c.copy(pmpGranularity = v)   } text("Granularity of PMP regions (in bytes)")
++      opt[Boolean]("pmpOld")    action { (v, c) => c.copy(pmpOld = v)   } text("Old PMP plugin which supports addressing modes other than NAPOT")
+       opt[Boolean]("mulDiv")    action { (v, c) => c.copy(mulDiv = v)   } text("set RV32IM")
+       opt[Boolean]("cfu")       action { (v, c) => c.copy(cfu = v)   } text("If true, add custom function unit interface")
+       opt[Boolean]("atomics")    action { (v, c) => c.copy(atomics = v)   } text("set RV32I[A]")
+@@ -159,6 +161,8 @@ object GenCoreDefault{
+           ioRange = (x => x(31 downto 28) === 0xB || x(31 downto 28) === 0xE || x(31 downto 28) === 0xF)
+         ) else if (argConfig.pmpRegions > 0) new PmpPlugin(
+           regions = argConfig.pmpRegions, granularity = argConfig.pmpGranularity, ioRange = _.msb
++	) else if (argConfig.pmpOld) new PmpPluginOld (
++	  regions = 16, ioRange = _.msb
+         ) else new StaticMemoryTranslatorPlugin(
+           ioRange      = _.msb
+         ),
+-- 
+2.36.0
+
