@@ -70,6 +70,7 @@ let
         litex-unchecked = upstream.litex-unchecked.overrideAttrs (prev: {
           patches = (prev.patches or [ ]) ++ [
             ./litex_add_TockSecureIMC_CPU.patch
+            ./litex_disable_TFTP_block_size_negotiation.patch
           ];
         });
       };

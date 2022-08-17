@@ -1,0 +1,31 @@
+From 0aa652cfb04194cafaa7bf43ba7cd4bf93a0f2bf Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Wed, 17 Aug 2022 16:59:58 +0200
+Subject: [PATCH] libliteeth/tftp.c: do not negotiate larger TFTP block size
+
+This seems to fail at least with the netkit TFTP server. The blocksize
+option is never acknowledged and hence when the first block smaller
+than the negotiated block size arrives, the LiteX BIOS assumes it has
+finished receiving the file.
+
+Signed-off-by: Leon Schuermann <leon@is.currently.online>
+---
+ litex/soc/software/libliteeth/tftp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/litex/soc/software/libliteeth/tftp.c b/litex/soc/software/libliteeth/tftp.c
+index 8c8167a1..cbfe4659 100644
+--- a/litex/soc/software/libliteeth/tftp.c
++++ b/litex/soc/software/libliteeth/tftp.c
+@@ -27,7 +27,7 @@ enum {
+ 	TFTP_OACK	= 6,	/* Option Acknowledgment */
+ };
+ 
+-#define	BLOCK_SIZE	1024 /* block size in bytes 512 or 1024*/
++#define	BLOCK_SIZE	512 /* block size in bytes 512 or 1024*/
+ 
+ static int format_request(uint8_t *buf, uint16_t op, const char *filename)
+ {
+-- 
+2.36.0
+
