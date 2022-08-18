@@ -1,4 +1,4 @@
-https://github.com/lschuermann/tock-litex/releases/download/2022081701/litex_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/tock-cipin-1/litex_patched.zip
 git+https://github.com/litex-hub/litex-boards@bf458e388efea428189a4a33c1cb40cadce85d48#egg=litex-boards
 git+https://github.com/enjoy-digital/liteeth@6cf7759c9bfaf221eec6e62cae504c7e88ab690b#egg=liteeth
 git+https://github.com/enjoy-digital/litedram@3d066c87f948e3f8584dfa0244d0930161f71e62#egg=litedram
@@ -9,7 +9,7 @@ git+https://github.com/enjoy-digital/litescope@1d7e91d019ed2b9fff56485995a7d0d16
 git+https://github.com/enjoy-digital/litesdcard@3750889e1473f649ff3d3142f3e3978c00cc53a8#egg=litesdcard
 git+https://github.com/litex-hub/litespi@28a17d801d588f1cd43ac8c38b98faa603eba45e#egg=litespi
 git+https://github.com/enjoy-digital/litevideo@41f30143075ece3fff5c33a332ed067d1837cbb3#egg=litevideo
-https://github.com/lschuermann/tock-litex/releases/download/2022081701/pythondata-cpu-vexriscv_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/tock-cipin-1/pythondata-cpu-vexriscv_patched.zip
 git+https://github.com/litex-hub/pythondata-cpu-vexriscv_smp@4306ae2eb5464bc37d14eff9a3c051d7b0c17d0d#egg=pythondata-cpu-vexriscv_smp
 git+https://github.com/litex-hub/pythondata-misc-tapcfg@fbcb02422940bbb97c492f0c970959d262b33632#egg=pythondata-misc-tapcfg
 git+https://github.com/litex-hub/pythondata-software-compiler_rt@fcb03245613ccf3079cc833a701f13d0beaae09d#egg=pythondata-software-compiler_rt
