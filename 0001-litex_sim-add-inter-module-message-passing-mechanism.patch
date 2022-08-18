@@ -1,0 +1,755 @@
+From 2d2eaa9b48b1c1a557d93711f495131b18fcc82b Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Wed, 17 Nov 2021 12:27:13 +0100
+Subject: [PATCH 1/5] litex_sim: add inter-module message passing mechanism
+
+This introduces a generic, flexible and efficient inter-module message
+passing mechanism to allow for more advanced module behavior and
+interactions, as well as outside control of module behavior.
+
+Possible applications for this mechanism are outside control of
+emulated peripherals such as GPIO, simulated hardware attached to
+multiple independent subsystems (e.g. GPIO + SPI) and integration of
+the LiteX simulation in automated systems such as CI.
+
+The message passing mechanism does not impose any restrictions on the
+data exchanged between modules and each module is free to define its
+own interfaces through opcodes >= 256. Opcodes < 256 are reserved for
+globally defined operations.
+
+These global operations include auto-announcement of instantiated
+module sessions in the simulation for discovery and a mechanism for
+interacting with outside applications (called "simctrl"). These
+operations are well documented in `modules.h`.
+
+This further introduces a few functions which expose basic information
+about and control of the simulation, such as querying the current
+simulation time and state, and requesting the simulation to halt or
+resume operation.
+
+Signed-off-by: Leon Schuermann <leon@is.currently.online>
+---
+ litex/build/sim/core/modules.c                |  20 ++
+ litex/build/sim/core/modules.h                | 226 +++++++++++++++++-
+ .../build/sim/core/modules/clocker/clocker.c  |   5 +-
+ .../sim/core/modules/ethernet/ethernet.c      |   5 +-
+ .../modules/gmii_ethernet/gmii_ethernet.c     |   5 +-
+ .../sim/core/modules/jtagremote/jtagremote.c  |   5 +-
+ .../modules/serial2console/serial2console.c   |   5 +-
+ .../sim/core/modules/serial2tcp/serial2tcp.c  |   5 +-
+ .../sim/core/modules/spdeeprom/spdeeprom.c    |   7 +-
+ .../modules/xgmii_ethernet/xgmii_ethernet.c   |   5 +-
+ litex/build/sim/core/sim.c                    | 138 ++++++++++-
+ 11 files changed, 385 insertions(+), 41 deletions(-)
+
+diff --git a/litex/build/sim/core/modules.c b/litex/build/sim/core/modules.c
+index 7c7a4643..a159c753 100644
+--- a/litex/build/sim/core/modules.c
++++ b/litex/build/sim/core/modules.c
+@@ -157,3 +157,23 @@ out:
+   *found = list;
+   return ret;
+ }
++
++const char* msg_return_strerror(msg_return_t err) {
++    switch (err) {
++    case MSGRET_SUCCESS:
++        return "success";
++        break;
++    case MSGRET_FAIL:
++        return "fail";
++        break;
++    case MSGRET_MODSESSION_NOT_FOUND:
++        return "modsession_not_found";
++        break;
++    case MSGRET_INVALID_OP:
++        return "invalid_op";
++        break;
++    default:
++        return "unknown";
++        break;
++    }
++}
+diff --git a/litex/build/sim/core/modules.h b/litex/build/sim/core/modules.h
+index 76dba430..0c32e6e9 100644
+--- a/litex/build/sim/core/modules.h
++++ b/litex/build/sim/core/modules.h
+@@ -7,12 +7,6 @@
+ #include <stdbool.h>
+ #include "pads.h"
+ 
+-typedef enum clk_edge {
+-    CLK_EDGE_NONE,
+-    CLK_EDGE_RISING,
+-    CLK_EDGE_FALLING,
+-} clk_edge_t;
+-
+ struct interface_s {
+   char *name;
+   int index;
+@@ -27,13 +21,217 @@ struct module_s {
+   struct module_s *next;
+ };
+ 
++/**
++ * Inter-module messaging.
++ *
++ * The LiteX simulator provides a way for modules to exchange messages. This can
++ * be used for a variety of things, such as emulating hardware which is
++ * connected two two independent bus subsystems, controlling the simulation,
++ * etc. The messaging system does not define the content and types of messages
++ * transmitted.
++ *
++ * While modules are free to implement their own message handlers, opcodes < 256
++ * are reserved and must be defined in this file below. This is to enable
++ * implementation of global, non module-specific behavior.
++ *
++ * An example of this is the simctrl interface. It is a generic component which
++ * can be used to allow external programs to interface with the simulation and
++ * is a bridge for messages to specific modules in the simulation. Thus it's
++ * interface and it's opcodes are specified here.
++ *
++ * To discover other modules in the simulation, each module with a registered
++ * module handler will retrieve a message of opcode MODMSG_OP_NEWMODSESSION with
++ * a `data` value of type `modmsg_newmodsession_payload_t` for each module
++ * session in the simulation. The returned `*retdata` must be NULL.
++ */
++
++// Global inter-module messaging opcodes
++#define MODMSG_OP_NEWMODSESSION 0
++#define MODMSG_OP_SIMCTRL_REQ 1
++#define MODMSG_OP_SIMCTRL_RETFREE 2
++
++/**
++ * Error codes for inter-module messaging.
++ *
++ * Modules must never return MSGRET_MODSESSION_NOT_FOUND.
++ */
++typedef enum {
++  MSGRET_SUCCESS = 0,
++  MSGRET_FAIL = -1,
++  MSGRET_MODSESSION_NOT_FOUND = -2,
++  MSGRET_INVALID_OP = -3,
++} msg_return_t;
++
++/**
++ * Convert a msg_return_t to a string representation.
++ *
++ * This performs no allocations.
++ */
++const char* msg_return_strerror(msg_return_t err);
++
++
++/**
++ * A simctrl message targeted towards a specific module.
++ *
++ * The MODMSG_OP_SIMCTRL_REQ and MODMSG_OP_SIMCTRL_RETFREE messages use this
++ * data type as their `data` parameter. The MODMSG_OP_SIMCTRL_REQ messages
++ * accept an optional `retdata` pointer to point towards a valid instance of
++ * this data type.
++ *
++ * The simctrl_msg_t pointer passed into `data` on a MODMSG_OP_SIMCTRL_REQ,
++ * along with the contained `data` field, is allocated by the caller and only
++ * valid for the duration of the method invocation.
++ *
++ * On a MODMSG_OP_SIMCTRL_REQ the receiving module may wish to return a response
++ * to the caller. It can allocate a `simctrl_msg_t` and make `retdata` point to
++ * this allocated struct, which will be recognized as a response by the message
++ * sender. If `retdata` is non-NULL, to allow freeing the allocated memory, the
++ * sender must subsequently send a MODMSG_OP_SIMCTRL_RETFREE message, with the
++ * `data` pointer set to the value written to `retdata`. This can be used by the
++ * receiving module to free the previously allocated module. To keep additional
++ * state between sending the response and freeing the response memory, the
++ * receiver is free to use the `retdata_private` field.
++ *
++ * Upon a MODMSG_OP_SIMCTRL_RETFREE, the `retdata` field MUST be set to NULL. No
++ * additional response may be returned.
++ *
++ * Visually, the message flow looks like the following:
++ *
++ * /----------------\                                   /--------------\
++ * | simctrl        |  MODMSG_OP_SIMCTRL_REQ            | other module |
++ * | implementation |  -> `data` stack allocated        |              |
++ * |                |---------------------------------->|              |
++ * |                |     `*retdata` heap allocated <-  |              |
++ * |                |                       or NULL     |              |
++ * |                |                                   |              |
++ * -- if `*retdata` is not NULL ----------------------------------------
++ * |                |                                   |              |
++ * |                |  MODMSG_OP_SIMCTRL_RETFREE        |              |
++ * |                |  -> `data` = previous `*retdata`  |              |
++ * |                |---------------------------------->|              |
++ * |                |       `*retdata` MUST be NULL <-  |              |
++ * \----------------/                                   \--------------/
++ */
++typedef struct {
++  size_t len;
++  void* data;
++  void* retdata_private;
++} simctrl_msg_t;
++
++/**
++ * Identifier of a specific module session.
++ *
++ * Modules must not rely on or access the contents of this struct.
++ */
++typedef struct {
++  void *sptr;
++} litex_sim_msid_t;
++
++/**
++ * Payload of the MODMSG_OP_NEWMODSESSION message.
++ *
++ * Indicates that a specific module session has been registered with the
++ * simulation. `mod_name` will contain the name of the registered
++ * module. `mod_session_id` can be used with `litex_sim_send_msg` to send
++ * messages to the respective module session.
++ */
++typedef struct {
++  char *mod_name;
++  litex_sim_msid_t mod_session_id;
++} modmsg_newmodsession_payload_t;
++
++/**
++ * Send an inter-module message.
++ *
++ * Callers must pass in a valid sim_handle, typically announced to them using a
++ * parameter on the `start` method of the `ext_module_s` interface.
++ *
++ * `mod_session_id` determines to which module session this message will be
++ * routed. This value must have been provided to the caller through the
++ * MODMSG_OP_NEWMODSESSION message.
++ *
++ * `msg_op`, `data` and `retdata` are forwarded to the call to `module_msg` on
++ * the `ext_module_s` interface.
++ *
++ * In case the module session could not be found, this method will return
++ * MSGRET_MODSESSION_NOT_FOUND. In case the module has no message handler
++ * defined, this method will return MSGRET_INVALID_OP. If the module itself
++ * returns MSGRET_MODSESSION_NOT_FOUND, this will be converted into a
++ * MSGRET_FAIL.
++ */
++msg_return_t litex_sim_send_msg(
++  void *sim_handle,
++  litex_sim_msid_t mod_session_id,
++  uint32_t msg_op,
++  void* data,
++  void** retdata
++);
++
++/**
++ * Retrieve the current simulation time in picoseconds.
++ */
++uint64_t litex_sim_current_time_ps(void *sim_handle);
++
++/**
++ * Query the current state of the simulation.
++ *
++ * Returns:
++ * - `true` if the simulation is currently halted.
++ * - `false` if the simulation is currently running.
++ */
++bool litex_sim_halted(void *sim_handle);
++
++/**
++ * Request the simulation to halt or resume.
++ *
++ * Parameters:
++ * `halt`: - if `true`, halt the simulation
++ *         - if `false`, resume the simulation
++ *
++ * If the simulation is already in the requested state, this does nothing.
++ *
++ * Beware that halting the simulation will eventually cause calls to `tick`
++ * methods on `ext_module_s` interfaces to cease. The module should have a way
++ * to resume the simulation at some point, possibly through a scheduled event on
++ * the libevent base.
++ */
++void litex_sim_halt(bool halt);
++
+ struct ext_module_s {
+   char *name;
+-  int (*start)(void *);
++  int (*start)(void *, void *sim_handle);
+   int (*new_sess)(void **, char *);
+   int (*add_pads)(void *, struct pad_list_s *);
+   int (*close)(void*);
+   int (*tick)(void*, uint64_t);
++
++  /** Generic interface for inter-module communication
++   *
++   * This method is invoked whenever a message for a module with a matching name
++   * is received.
++   *
++   * It is legal for a module to not implement this function. If this function
++   * pointer is set to NULL, every received message will automatically return an
++   * MSGRET_INVALID_OP.
++   *
++   * The return code must indicate whether the message received and processed
++   * successfully. Implementations must never return
++   * MSGRET_MODSESSION_NOT_FOUND.
++   *
++   * `msg_op` hints at the type of a message. The API contract per `msg_op` is
++   * defined by the module itself. Thus `msg_op` must be unique within a given
++   * module only.
++   *
++   * Any message payload will be passed as `data`. If no payload is provided,
++   * this pointer can be NULL.
++   *
++   * A pointer to a return payload, if any, can be placed in `retdata`. How
++   * allocated memory for return payload is freed is not specified in this
++   * interface. One possible implementation is to define an additional `msg_op`
++   * per `msg_op`, invoked with the pointer to `retdata` passed in such that the
++   * module implementation can decide whether memory needs to be freed.
++   */
++  msg_return_t (*module_msg)(void* state, uint32_t msg_op, void *data, void **retdata);
+ };
+ 
+ struct ext_module_list_s {
+@@ -41,14 +239,20 @@ struct ext_module_list_s {
+   struct ext_module_list_s *next;
+ };
+ 
+-typedef struct clk_edge_state {
+-  int last_clk;
+-} clk_edge_state_t;
+-
+ int litex_sim_file_parse(char *filename, struct module_s **mod, uint64_t *timebase);
+ int litex_sim_load_ext_modules(struct ext_module_list_s **mlist);
+ int litex_sim_find_ext_module(struct ext_module_list_s *first, char *name , struct ext_module_list_s **found);
+ 
++typedef enum clk_edge {
++    CLK_EDGE_NONE,
++    CLK_EDGE_RISING,
++    CLK_EDGE_FALLING,
++} clk_edge_t;
++
++typedef struct clk_edge_state {
++  int last_clk;
++} clk_edge_state_t;
++
+ inline bool clk_pos_edge(clk_edge_state_t *edge_state, int new_clk) {
+   bool is_edge = edge_state->last_clk == 0 && new_clk == 1;
+   edge_state->last_clk = new_clk;
+diff --git a/litex/build/sim/core/modules/clocker/clocker.c b/litex/build/sim/core/modules/clocker/clocker.c
+index 92115a41..87334d2f 100644
+--- a/litex/build/sim/core/modules/clocker/clocker.c
++++ b/litex/build/sim/core/modules/clocker/clocker.c
+@@ -85,7 +85,7 @@ out:
+   return ret;
+ }
+ 
+-static int clocker_start()
++static int clocker_start(void *b, void *sh)
+ {
+   printf("[clocker] loaded\n");
+   return RC_OK;
+@@ -164,7 +164,8 @@ static struct ext_module_s ext_mod = {
+   clocker_new,
+   clocker_add_pads,
+   NULL,
+-  clocker_tick
++  clocker_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+diff --git a/litex/build/sim/core/modules/ethernet/ethernet.c b/litex/build/sim/core/modules/ethernet/ethernet.c
+index 196790ff..e9621f4b 100644
+--- a/litex/build/sim/core/modules/ethernet/ethernet.c
++++ b/litex/build/sim/core/modules/ethernet/ethernet.c
+@@ -97,7 +97,7 @@ out:
+   return ret;
+ }
+ 
+-static int ethernet_start(void *b)
++static int ethernet_start(void *b, void *sh)
+ {
+   base = (struct event_base *) b;
+   printf("[ethernet] loaded (%p)\n", base);
+@@ -248,7 +248,8 @@ static struct ext_module_s ext_mod = {
+   ethernet_new,
+   ethernet_add_pads,
+   NULL,
+-  ethernet_tick
++  ethernet_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+diff --git a/litex/build/sim/core/modules/gmii_ethernet/gmii_ethernet.c b/litex/build/sim/core/modules/gmii_ethernet/gmii_ethernet.c
+index e773f6b7..c28ebd08 100644
+--- a/litex/build/sim/core/modules/gmii_ethernet/gmii_ethernet.c
++++ b/litex/build/sim/core/modules/gmii_ethernet/gmii_ethernet.c
+@@ -498,7 +498,7 @@ out:
+     return ret;
+ }
+ 
+-static int gmii_ethernet_start(void *b) {
++static int gmii_ethernet_start(void *b, void *sh) {
+   base = (struct event_base *) b;
+   printf("[gmii_ethernet] loaded (%p)\n", base);
+   return RC_OK;
+@@ -555,7 +555,8 @@ static struct ext_module_s ext_mod = {
+     gmii_ethernet_new,
+     gmii_ethernet_add_pads,
+     NULL,
+-    gmii_ethernet_tick
++    gmii_ethernet_tick,
++    NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *)) {
+diff --git a/litex/build/sim/core/modules/jtagremote/jtagremote.c b/litex/build/sim/core/modules/jtagremote/jtagremote.c
+index 1b0fa4e2..c9880acb 100644
+--- a/litex/build/sim/core/modules/jtagremote/jtagremote.c
++++ b/litex/build/sim/core/modules/jtagremote/jtagremote.c
+@@ -84,7 +84,7 @@ out:
+   return ret;
+ }
+ 
+-static int jtagremote_start(void *b)
++static int jtagremote_start(void *b, void *sh)
+ {
+   base = (struct event_base *)b;
+   printf("[jtagremote] loaded (%p)\n", base);
+@@ -254,7 +254,8 @@ static struct ext_module_s ext_mod = {
+   jtagremote_new,
+   jtagremote_add_pads,
+   NULL,
+-  jtagremote_tick
++  jtagremote_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+diff --git a/litex/build/sim/core/modules/serial2console/serial2console.c b/litex/build/sim/core/modules/serial2console/serial2console.c
+index 82466217..b5d7210d 100644
+--- a/litex/build/sim/core/modules/serial2console/serial2console.c
++++ b/litex/build/sim/core/modules/serial2console/serial2console.c
+@@ -59,7 +59,7 @@ void set_conio_terminal_mode(void)
+   tcsetattr(0, TCSANOW, &new_termios);
+ }
+ 
+-static int serial2console_start(void *b)
++static int serial2console_start(void *b, void *sh)
+ {
+   base = (struct event_base *)b;
+   set_conio_terminal_mode();
+@@ -171,7 +171,8 @@ static struct ext_module_s ext_mod = {
+   serial2console_new,
+   serial2console_add_pads,
+   NULL,
+-  serial2console_tick
++  serial2console_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module) (struct ext_module_s *))
+diff --git a/litex/build/sim/core/modules/serial2tcp/serial2tcp.c b/litex/build/sim/core/modules/serial2tcp/serial2tcp.c
+index 0d173471..7153aa91 100644
+--- a/litex/build/sim/core/modules/serial2tcp/serial2tcp.c
++++ b/litex/build/sim/core/modules/serial2tcp/serial2tcp.c
+@@ -97,7 +97,7 @@ out:
+   return ret;
+ }
+ 
+-static int serial2tcp_start(void *b)
++static int serial2tcp_start(void *b, void *sh)
+ {
+   base = (struct event_base *)b;
+   printf("[serial2tcp] loaded (%p)\n", base);
+@@ -272,7 +272,8 @@ static struct ext_module_s ext_mod = {
+   serial2tcp_new,
+   serial2tcp_add_pads,
+   NULL,
+-  serial2tcp_tick
++  serial2tcp_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+diff --git a/litex/build/sim/core/modules/spdeeprom/spdeeprom.c b/litex/build/sim/core/modules/spdeeprom/spdeeprom.c
+index 932b51b8..6712b630 100644
+--- a/litex/build/sim/core/modules/spdeeprom/spdeeprom.c
++++ b/litex/build/sim/core/modules/spdeeprom/spdeeprom.c
+@@ -62,7 +62,7 @@ struct session_s {
+ };
+ 
+ // Module interface
+-static int spdeeprom_start();
++static int spdeeprom_start(void *b, void *sh);
+ static int spdeeprom_new(void **sess, char *args);
+ static int spdeeprom_add_pads(void *sess, struct pad_list_s *plist);
+ static int spdeeprom_tick(void *sess, uint64_t time_ps);
+@@ -81,7 +81,8 @@ static struct ext_module_s ext_mod = {
+   spdeeprom_new,
+   spdeeprom_add_pads,
+   NULL,
+-  spdeeprom_tick
++  spdeeprom_tick,
++  NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+@@ -91,7 +92,7 @@ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *))
+   return ret;
+ }
+ 
+-static int spdeeprom_start()
++static int spdeeprom_start(void *b, void *sh)
+ {
+   printf("[spdeeprom] loaded (addr = 0x%01x)\n", SPD_EEPROM_ADDR);
+   return RC_OK;
+diff --git a/litex/build/sim/core/modules/xgmii_ethernet/xgmii_ethernet.c b/litex/build/sim/core/modules/xgmii_ethernet/xgmii_ethernet.c
+index c2ec7a96..8e04031d 100644
+--- a/litex/build/sim/core/modules/xgmii_ethernet/xgmii_ethernet.c
++++ b/litex/build/sim/core/modules/xgmii_ethernet/xgmii_ethernet.c
+@@ -882,7 +882,7 @@ out:
+     return ret;
+ }
+ 
+-static int xgmii_ethernet_start(void *b) {
++static int xgmii_ethernet_start(void *b, void *sh) {
+   base = (struct event_base *) b;
+   printf("[xgmii_ethernet] loaded (%p)\n", base);
+   return RC_OK;
+@@ -939,7 +939,8 @@ static struct ext_module_s ext_mod = {
+     xgmii_ethernet_new,
+     xgmii_ethernet_add_pads,
+     NULL,
+-    xgmii_ethernet_tick
++    xgmii_ethernet_tick,
++    NULL,
+ };
+ 
+ int litex_sim_ext_module_init(int (*register_module)(struct ext_module_s *)) {
+diff --git a/litex/build/sim/core/sim.c b/litex/build/sim/core/sim.c
+index 33e6edb3..201216b8 100644
+--- a/litex/build/sim/core/sim.c
++++ b/litex/build/sim/core/sim.c
+@@ -1,4 +1,9 @@
+-/* Copyright (C) 2017 LambdaConcept */
++/**
++ * LiteX Simulator (verilated simulation)
++ *
++ * Copyright (c) 2017 LambdaConcept
++ * Copyright (c) 2021 Leon Schuermann <leon@is.currently.online>
++ */
+ 
+ #include <string.h>
+ #include <errno.h>
+@@ -33,6 +38,10 @@ struct session_list_s {
+ 
+ uint64_t timebase_ps = 1;
+ uint64_t sim_time_ps = 0;
++
++// TODO: introduce parameter which enables the simulation to halt on start.
++bool sim_halt = false;
++
+ struct session_list_s *sesslist=NULL;
+ struct event_base *base=NULL;
+ 
+@@ -45,11 +54,22 @@ static int litex_sim_initialize_all(void **sim, void *base)
+   //struct ext_module_list_s *mlisti=NULL;
+   struct pad_list_s *plist=NULL;
+   struct pad_list_s *pplist=NULL;
++  struct session_list_s *fslist=NULL;
+   struct session_list_s *slist=NULL;
+   void *vsim=NULL;
+   int i;
+   int ret = RC_OK;
+ 
++  // Initialize the first entry of the session list early on, as we'd
++  // like to give a pointer to that to the individual modules. This
++  // pointer is going to be passed back by the modules for
++  // inter-module communication.
++  fslist = malloc(sizeof(struct session_list_s));
++  if (NULL == fslist) {
++      ret = RC_NOENMEM;
++      goto out;
++  }
++
+   /* Load external modules */
+   ret = litex_sim_load_ext_modules(&mlist);
+   if(RC_OK != ret)
+@@ -60,7 +80,7 @@ static int litex_sim_initialize_all(void **sim, void *base)
+   {
+     if(pmlist->module->start)
+     {
+-      pmlist->module->start(base);
++      pmlist->module->start(base, fslist);
+     }
+   }
+ 
+@@ -82,7 +102,6 @@ static int litex_sim_initialize_all(void **sim, void *base)
+ 
+   for(mli = ml; mli; mli=mli->next)
+   {
+-
+     /* Find the module in the external module */
+     pmlist = NULL;
+     ret = litex_sim_find_ext_module(mlist, mli->name, &pmlist );
+@@ -96,11 +115,10 @@ static int litex_sim_initialize_all(void **sim, void *base)
+       continue;
+     }
+ 
+-    slist=(struct session_list_s *)malloc(sizeof(struct session_list_s));
+-    if(NULL == slist)
+-    {
+-      ret = RC_NOENMEM;
+-      goto out;
++    slist = malloc(sizeof(struct session_list_s));
++    if (NULL == slist) {
++        ret = RC_NOENMEM;
++        goto out;
+     }
+     memset(slist, 0, sizeof(struct session_list_s));
+ 
+@@ -122,20 +140,45 @@ static int litex_sim_initialize_all(void **sim, void *base)
+       ret = litex_sim_pads_find(plist, mli->iface[i].name, mli->iface[i].index, &pplist);
+       if(RC_OK != ret)
+       {
+-	goto out;
++        goto out;
+       }
+       if(NULL == pplist)
+       {
+-	eprintf("Could not find interface %s with index %d\n", mli->iface[i].name, mli->iface[i].index);
+-	continue;
++        eprintf("Could not find interface %s with index %d\n", mli->iface[i].name, mli->iface[i].index);
++        continue;
+       }
++      if (pmlist->module->add_pads != NULL) {
+       ret = pmlist->module->add_pads(slist->session, pplist);
+       if(RC_OK != ret)
+       {
+-	goto out;
++        goto out;
++      }}
++    }
++  }
++
++  // Move the list head to the already allocated memory location
++  memcpy(fslist, slist, sizeof(struct session_list_s));
++
++  // Try to send a message to every module session, announcing every
++  // other module session.
++  struct session_list_s *slist_iter_a;
++  struct session_list_s *slist_iter_b;
++  for (slist_iter_a = fslist; slist_iter_a != NULL; slist_iter_a = slist_iter_a->next) {
++    litex_sim_msid_t dst_session_id;
++    dst_session_id.sptr = slist_iter_a->session;
++    for (slist_iter_b = fslist; slist_iter_b != NULL; slist_iter_b = slist_iter_b->next) {
++      if (slist_iter_a != slist_iter_b) {
++          litex_sim_msid_t mod_session_id;
++          mod_session_id.sptr = slist_iter_b->session;
++          modmsg_newmodsession_payload_t data;
++          data.mod_name = slist_iter_b->module->name;
++          data.mod_session_id = mod_session_id;
++          void* retdata;
++          litex_sim_send_msg(fslist, dst_session_id, MODMSG_OP_NEWMODSESSION, &data, &retdata);
+       }
+     }
+   }
++
+   *sim = vsim;
+ out:
+   return ret;
+@@ -178,8 +221,13 @@ static void cb(int sock, short which, void *arg)
+   tv.tv_usec = 0;
+   int i;
+ 
++  
+   for(i = 0; i < 1000; i++)
+   {
++    if (sim_halt) {
++      break;
++    }
++
+     for(s = sesslist; s; s=s->next)
+     {
+       if(s->tickfirst)
+@@ -203,12 +251,76 @@ static void cb(int sock, short which, void *arg)
+     }
+   }
+ 
+-  if (!evtimer_pending(ev, NULL)) {
++  if (!evtimer_pending(ev, NULL) && !sim_halt) {
+     event_del(ev);
+     evtimer_add(ev, &tv);
+   }
+ }
+ 
++/**
++ * Send a message to a module session in the simulation.
++ *
++ * Prototype and behavior defined in `modules.h`.
++ */
++msg_return_t litex_sim_send_msg(
++  void *sim_handle,
++  litex_sim_msid_t mod_session_id,
++  uint32_t msg_op,
++  void* data,
++  void** retdata
++) {
++  struct session_list_s *slist = sim_handle;
++
++  // Find the matching session
++  while (slist != NULL) {
++      if (slist->session == mod_session_id.sptr) {
++        break;
++    }
++    slist = slist->next;
++  }
++
++  // Check whether we finished the loop without finding a matching module
++  if (slist == NULL) {
++    return MSGRET_MODSESSION_NOT_FOUND;
++  }
++
++  // Check whether the module has defined a handler for messages
++  if (slist->module->module_msg == NULL) {
++    return MSGRET_INVALID_OP;
++  }
++
++  // Finally, pass the message to the module
++  msg_return_t msg_ret = (slist->module->module_msg)(slist->session, msg_op, data, retdata);
++
++  if (msg_ret == MSGRET_MODSESSION_NOT_FOUND) {
++      fprintf(stderr, "[litex_sim]: module %s reported MSGRET_MODSESSION_NOT_FOUND, which is illegal. replacing with MSGRET_FAIL.\n", slist->module->name);
++      msg_ret = MSGRET_FAIL;
++  }
++
++  return msg_ret;
++};
++
++uint64_t litex_sim_current_time_ps(void *sim_handle) {
++    return sim_time_ps;
++}
++
++bool litex_sim_halted(void *sim_handle) {
++    return sim_halt;
++}
++
++void litex_sim_halt(bool halt) {
++    struct timeval tv;
++    tv.tv_sec = 0;
++    tv.tv_usec = 0;
++
++    sim_halt = halt;
++
++    if (!evtimer_pending(ev, NULL) && !sim_halt) {
++      event_del(ev);
++      evtimer_add(ev, &tv);
++    }
++}
++
+ int main(int argc, char *argv[])
+ {
+   void *vsim=NULL;
+
+base-commit: 6b79644108a49411c20a982441a2f908fda32852
+-- 
+2.42.0
+

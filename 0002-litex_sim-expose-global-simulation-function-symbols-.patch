@@ -1,0 +1,37 @@
+From 6e3e3b5f3a1ff45a25efb3665407ee8d05c8d432 Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Wed, 17 Nov 2021 13:19:25 +0100
+Subject: [PATCH 2/5] litex_sim: expose global simulation function symbols to
+ modules
+
+This is required for modules to be able to call globally defined
+symbols to interact with other parts of the simulation, for example to
+send inter-module messages, query the simulation time or request the
+simulation to halt / resume.
+
+Signed-off-by: Leon Schuermann <leon@is.currently.online>
+---
+ litex/build/sim/core/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/litex/build/sim/core/Makefile b/litex/build/sim/core/Makefile
+index 4866d3a8..fe5c67cf 100644
+--- a/litex/build/sim/core/Makefile
++++ b/litex/build/sim/core/Makefile
+@@ -10,11 +10,11 @@ ifeq ($(UNAME_S),Darwin)
+ 		CFLAGS += -I/opt/homebrew/include
+ 		LDFLAGS += -L/opt/homebrew/lib
+ 	endif
+-	LDFLAGS += -lpthread -ljson-c -lz -lm -lstdc++ -ldl -levent $(if $(VIDEO), -lSDL2)
++	LDFLAGS += -lpthread -ljson-c -lz -lm -lstdc++ -ldl -levent $(if $(VIDEO), -lSDL2) -rdynamic
+ else
+ 	CC ?= gcc
+ 	CFLAGS += -ggdb
+-	LDFLAGS += -lpthread -Wl,--no-as-needed -ljson-c -lz -lm -lstdc++ -Wl,--no-as-needed -ldl -levent $(if $(VIDEO), -lSDL2)
++	LDFLAGS += -lpthread -Wl,--no-as-needed -ljson-c -lz -lm -lstdc++ -Wl,--no-as-needed -ldl -levent $(if $(VIDEO), -lSDL2) -rdynamic
+ endif
+ 
+ CFLAGS += -Wall -$(OPT_LEVEL) $(if $(COVERAGE), -DVM_COVERAGE) $(if $(TRACE_FST), -DTRACE_FST)
+-- 
+2.42.0
+

@@ -88,6 +88,11 @@ let
           patches = (prev.patches or [ ]) ++ [
             ./litex_add_TockSecureIMC_CPU.patch
             ./litex_disable_TFTP_block_size_negotiation.patch
+            ./0001-litex_sim-add-inter-module-message-passing-mechanism.patch
+            ./0002-litex_sim-expose-global-simulation-function-symbols-.patch
+            ./0003-GitHub-actions-CI-install-ZeroMQ-with-headers.patch
+            ./0004-litex_sim-add-ZeroMQ-JSON-based-simctrl-interface-mo.patch
+            ./0005-litex_sim-add-GPIO-module-exposed-through-simctrl.patch
           ];
         });
 

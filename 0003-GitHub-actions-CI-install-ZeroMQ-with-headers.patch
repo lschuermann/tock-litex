@@ -1,0 +1,25 @@
+From bd02f276922b338f0fc4693921b6d76326d55d00 Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Wed, 17 Nov 2021 13:17:02 +0100
+Subject: [PATCH 3/5] GitHub actions CI: install ZeroMQ with headers
+
+---
+ .github/workflows/ci.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e27b6a23..aa9b1826 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -22,7 +22,7 @@ jobs:
+         run: |
+           sudo apt-get install wget build-essential ninja-build
+           sudo apt-get install libevent-dev libjson-c-dev flex bison
+-          sudo apt-get install libfl-dev libfl2 zlib1g-dev
++          sudo apt-get install libfl-dev libfl2 zlib1g-dev libzmq3-dev
+ 
+       - name: Set up Python ${{ matrix.python-version }}
+         uses: actions/setup-python@v4
+-- 
+2.42.0
+

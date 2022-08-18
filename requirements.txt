@@ -1,5 +1,5 @@
-https://github.com/lschuermann/tock-litex/releases/download/2024011101/litex_patched.zip
-https://github.com/lschuermann/tock-litex/releases/download/2024011101/pythondata-cpu-vexriscv_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-0/litex_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-0/pythondata-cpu-vexriscv_patched.zip
 git+https://github.com/litex-hub/litex-boards@52f9f0f1079085fc7d09956b8d42ccb9a06357a5#egg=litex-boards
 git+https://github.com/enjoy-digital/liteeth@1ea28bd93a13bbadeccbab127738021b59e79009#egg=liteeth
 git+https://github.com/enjoy-digital/litedram@e9adaebf0ddc8468d28bffa8523f5a7dd048dfd5#egg=litedram

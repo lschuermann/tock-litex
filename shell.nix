@@ -26,7 +26,7 @@ in
       pythondata-cpu-vexriscv pkgsCross.riscv64-embedded.buildPackages.gcc gnumake
 
       # For simulation
-      pythondata-misc-tapcfg libevent json_c zlib verilator python3Packages.pyvcd
+      pythondata-misc-tapcfg libevent json_c zlib verilator python3Packages.pyvcd zeromq
 
       # For ECP5 bitstream builds
       yosys nextpnr icestorm
