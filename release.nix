@@ -2,11 +2,11 @@ let
   pinnedPkgs =
     import (builtins.fetchTarball {
       # Descriptive name to make the store path easier to identify
-      name = "nixos-22.05-2022-08-15";
-      # Commit hash for nixos-22.05 as of 2022-08-15
-      url = "https://github.com/nixos/nixpkgs/archive/3d47bbaa26e7a771059d828eecf3bd8bf28a8b0f.tar.gz";
+      name = "nixpkgs-23.011-2024-01-10";
+      # Commit hash for release-23.11 as of 2024-01-10
+      url = "https://github.com/nixos/nixpkgs/archive/f8f40cae42c67b815b72b7b46b05e5b5074b51a0.tar.gz";
       # Hash obtained using `nix-prefetch-url --unpack <url>`
-      sha256 = "0xnk777bwrdw2zklnhs4sq6rgzb4gn002ybwlizj35g3vy5rppvs";
+      sha256 = "sha256:1xy8pnhmknvggn9bcfd3h1l01dncckm6x13jc39z3mx3myjhni2d";
     }) {};
 
   zipDeriv = name: deriv: zipPath name deriv.version deriv;
@@ -99,6 +99,7 @@ in
           "${litexPkgs.litex.version}"
           "${litexPkgs.litex-unchecked.overrideAttrs (old: old // {
             phases = [ "unpackPhase" "patchPhase" "installPhase" ];
+            outputs = [ "out" ];
             installPhase = ''
               mkdir -p $out
               cp -vr ./ $out/

@@ -31,11 +31,15 @@ let
   # Alternative URLs (mirrors) for the nix-litex repository are
   #
   # - https://github.com/lschuermann/nix-litex.git
+  # - https://git.currently.online/leons/nix-litex.git
   #
   nixLitexSrc = builtins.fetchGit {
-    url = "https://git.sr.ht/~lschuermann/nix-litex";
+    # Temporary downtime of git.sr.ht, see
+    # https://status.sr.ht/issues/2023-01-10-network-outage/
+    #url = "https://git.sr.ht/~lschuermann/nix-litex";
+    url = "https://git.currently.online/leons/nix-litex.git";
     ref = "main";
-    rev = "b9498679d45b9c6a7583218422c7d8d4746d0a78";
+    rev = "75fb0a2b9be43f43b8b14a2f0fd437ebdd8ba76f";
   };
 
   litexPackages = import "${nixLitexSrc}/pkgs" {
@@ -43,7 +47,13 @@ let
     skipChecks = skipLitexPkgChecks;
   };
 
-  vivado = pkgs.callPackage "${nixLitexSrc}/pkgs/vivado" { };
+  lschuermannNurPkgs = import (builtins.fetchGit {
+    url = "https://github.com/lschuermann/nur-packages.git";
+    ref = "master";
+    rev = "dfc0d0e5f22f6dcc5bfc843193f6390c5e8d079b";
+  }) { inherit pkgs; };
+
+  vivado = lschuermannNurPkgs.vivado-2022_2;
 
   # There are some packages which need to be customized here. However
   # we still want to benefit from all the testing infrastructure of
@@ -59,9 +69,16 @@ let
         # Override the CPU to add the TockSecureIMC variant patch:
         pythondata-cpu-vexriscv = (upstream.pythondata-cpu-vexriscv.override ({
           generated = upstream.pythondata-cpu-vexriscv.generated.overrideAttrs (prev: {
-            patches = (prev.patches or [ ]) ++ [
-              ./pythondata-cpu-vexriscv_add_TockSecureIMC_CPU_OldPMPPlugin.patch
-            ];
+            # This patched revision is based on the upstream pythondata-cpu-vexriscv
+            # revision `3b8d17ee104b07113ff0889e72d5a6d5a5610c2d`, which is targete
+            # by the referenced nix-litex upstream. Thus the scala packages should
+            # be compatible, and we can simply override the source attribute.
+            src = builtins.fetchGit {
+              url = "https://github.com/lschuermann/litex-vexriscv-custom";
+              ref = "refs/heads/cibranch0";
+              rev = "38883a2be5587bf8556d71503386d8afe970a54b";
+              submodules = true;
+            };
           });
         }));
 
@@ -73,6 +90,16 @@ let
             ./litex_disable_TFTP_block_size_negotiation.patch
           ];
         });
+
+        litex-boards-unchecked = upstream.litex-boards-unchecked.overrideAttrs (prev: {
+          # Unfortunately, the upstream nix-litex overrides the
+          # patchPhase for litex-boards, which prevents us from
+          # specifying patches here. In the meantime, apply the patch
+          # manually:
+          patchPhase = ''
+            patch -p1 <${./litex-boards_targets-arty-add-option-to-set-with_buttons.patch}
+          '' + (prev.patchPhase or "");
+        });
       };
 
   applyOverlay = python: python.override {
@@ -80,14 +107,8 @@ let
   };
 
   overlay = self: super: {
-    sbt-mkDerivation = litexPackages.packages.sbt-mkDerivation;
-
-    python3 = applyOverlay super.python3;
-    python37 = applyOverlay super.python37;
-    python38 = applyOverlay super.python38;
-    python39 = applyOverlay super.python39;
-    python310 = applyOverlay super.python310;
-  };
+    mkSbtDerivation = litexPackages.mkSbtDerivation;
+  } // (litexPackages.applyPythonOverlays super applyOverlay);
 
   extended = pkgs.extend overlay;
 

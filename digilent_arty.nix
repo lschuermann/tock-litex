@@ -7,7 +7,7 @@
 let
   litexPkgs = pkgs: import ./litex-pkgs.nix {
     pkgs = pkgs;
-    skipLitexPkgChecks = true;
+    skipLitexPkgChecks = false;
   };
   support = import ./support.nix;
 
@@ -39,10 +39,10 @@ in
     pname = "litex-arty-${variant}";
     version = (litexPkgs pkgs).litex-boards.version;
 
-    src = (litexPkgs pkgs).litex-boards.src;
+    dontUnpack = true;
 
     buildInputs = with pkgs; with (litexPkgs pkgs); [
-      python38
+      python3
 
       litex litex-boards litedram liteeth liteiclink litepcie
       litehyperbus litespi pythondata-cpu-vexriscv
@@ -55,19 +55,28 @@ in
       ] else []
     );
 
-    buildPhase = builtins.concatStringsSep " " ([
-      "${pkgs.python38}/bin/python3.8 ./litex_boards/targets/digilent_arty.py"
-      "--uart-baudrate=1000000"
-      "--cpu-variant=tock+secure+imc"
-      "--csr-data-width=32"
-      "--timer-uptime"
-      "--integrated-rom-size=0xb000"
-      "--with-ethernet"
-      "--variant=${litexVariantString variant}"
-      "--build"
-    ] ++ (
-      # Only build the bitstream if the user explicitly requests it
-      if !buildBitstream then [ "--no-compile-gateware" ] else [])
+
+    buildPhase = ''
+      LITEX_BOARDS="$(python3 -c 'import os, litex_boards; print(os.path.dirname(litex_boards.__file__))')"
+    '' + (
+      builtins.concatStringsSep " " ([
+        "python3" "$LITEX_BOARDS/targets/digilent_arty.py"
+        "--uart-baudrate=1000000"
+        "--cpu-variant=tock+secure+imc"
+        "--csr-data-width=32"
+        "--timer-uptime"
+        "--integrated-rom-size=0xb000"
+        "--with-ethernet"
+        "--with-buttons"
+        "--with-xadc"
+        "--with-dna"
+        "--with-spi-flash"
+        "--variant=${litexVariantString variant}"
+        "--build"
+      ] ++ (
+        # Only build the bitstream if the user explicitly requests it
+        if !buildBitstream then [ "--no-compile-gateware" ] else [])
+      )
     );
 
     installPhase = (

@@ -1,17 +1,17 @@
-From d69cc8ddff9777573eeff4c5e0517b4541e4f676 Mon Sep 17 00:00:00 2001
+From 2b3f6d4afe6b327caee63129d4bdfe393aa40364 Mon Sep 17 00:00:00 2001
 From: Leon Schuermann <leon@is.currently.online>
 Date: Fri, 24 Sep 2021 21:11:46 +0200
-Subject: [PATCH] Add Tock VexRiscv cpu variants
+Subject: [PATCH 2/2] Add Tock VexRiscv cpu variants
 
 ---
  litex/soc/cores/cpu/vexriscv/core.py | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/litex/soc/cores/cpu/vexriscv/core.py b/litex/soc/cores/cpu/vexriscv/core.py
-index 14b29093..0ea23f95 100644
+index 02a9c458..fe273f6b 100644
 --- a/litex/soc/cores/cpu/vexriscv/core.py
 +++ b/litex/soc/cores/cpu/vexriscv/core.py
-@@ -41,6 +41,8 @@ CPU_VARIANTS = {
+@@ -47,6 +47,8 @@ CPU_VARIANTS = {
      "linux+no-dsp":       "VexRiscv_LinuxNoDspFmax",
      "secure":             "VexRiscv_Secure",
      "secure+debug":       "VexRiscv_SecureDebug",
@@ -20,15 +20,15 @@ index 14b29093..0ea23f95 100644
  }
  
  # GCC Flags ----------------------------------------------------------------------------------------
-@@ -70,6 +72,8 @@ GCC_FLAGS = {
-     "linux+no-dsp":     "-march=rv32i2p0_ma    -mabi=ilp32",
-     "secure":           "-march=rv32i2p0_ma    -mabi=ilp32",
-     "secure+debug":     "-march=rv32i2p0_ma    -mabi=ilp32",
-+    "tock+secure+imc":  "-march=rv32imc        -mabi=ilp32",
-+    "tock+secure+imc+debug": "-march=rv32imc   -mabi=ilp32",
+@@ -78,6 +80,8 @@ GCC_FLAGS = {
+     "linux+no-dsp":         "-march=rv32i2p0_ma    -mabi=ilp32",
+     "secure":               "-march=rv32i2p0_ma    -mabi=ilp32",
+     "secure+debug":         "-march=rv32i2p0_ma    -mabi=ilp32",
++    "tock+secure+imc":      "-march=rv32i2p0_mc    -mabi=ilp32",
++    "tock+secure+imc+debug": "-march=rv32i2p0_mc   -mabi=ilp32",
  }
  
  # VexRiscv Timer -----------------------------------------------------------------------------------
 -- 
-2.36.0
+2.42.0
 

@@ -1,0 +1,34 @@
+From fd3c40202d12ffc8f0186c300380fd287b8b2727 Mon Sep 17 00:00:00 2001
+From: Leon Schuermann <leon@is.currently.online>
+Date: Thu, 11 Jan 2024 14:15:06 -0500
+Subject: [PATCH] targets/arty: add option to set with_buttons
+
+---
+ litex_boards/targets/digilent_arty.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/litex_boards/targets/digilent_arty.py b/litex_boards/targets/digilent_arty.py
+index 6b45675..e9fa8f4 100755
+--- a/litex_boards/targets/digilent_arty.py
++++ b/litex_boards/targets/digilent_arty.py
+@@ -160,6 +160,7 @@ def main():
+     parser.add_target_argument("--sys-clk-freq", default=100e6, type=float, help="System clock frequency.")
+     parser.add_target_argument("--with-xadc",    action="store_true",       help="Enable 7-Series XADC.")
+     parser.add_target_argument("--with-dna",     action="store_true",       help="Enable 7-Series DNA.")
++    parser.add_target_argument("--with-buttons", action="store_true",       help="Enable User Buttons.")
+     ethopts = parser.target_group.add_mutually_exclusive_group()
+     ethopts.add_argument("--with-ethernet",        action="store_true",    help="Enable Ethernet support.")
+     ethopts.add_argument("--with-etherbone",       action="store_true",    help="Enable Etherbone support.")
+@@ -187,6 +188,7 @@ def main():
+         eth_dynamic_ip = args.eth_dynamic_ip,
+         with_spi_flash = args.with_spi_flash,
+         with_pmod_gpio = args.with_pmod_gpio,
++        with_buttons   = args.with_buttons,
+         **parser.soc_argdict
+     )
+     if args.sdcard_adapter == "numato":
+
+base-commit: 926d54cb41def433d60b64ab527c976137acfc2d
+-- 
+2.42.0
+
