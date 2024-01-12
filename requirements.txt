@@ -1,5 +1,5 @@
-https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-0/litex_patched.zip
-https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-0/pythondata-cpu-vexriscv_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-1/litex_patched.zip
+https://github.com/lschuermann/tock-litex/releases/download/2024011101-tock-ci-1/pythondata-cpu-vexriscv_patched.zip
 git+https://github.com/litex-hub/litex-boards@52f9f0f1079085fc7d09956b8d42ccb9a06357a5#egg=litex-boards
 git+https://github.com/enjoy-digital/liteeth@1ea28bd93a13bbadeccbab127738021b59e79009#egg=liteeth
 git+https://github.com/enjoy-digital/litedram@e9adaebf0ddc8468d28bffa8523f5a7dd048dfd5#egg=litedram
@@ -15,5 +15,5 @@ git+https://github.com/litex-hub/pythondata-misc-tapcfg@fbcb02422940bbb97c492f0c
 git+https://github.com/litex-hub/pythondata-software-compiler_rt@fcb03245613ccf3079cc833a701f13d0beaae09d#egg=pythondata-software-compiler_rt
 git+https://github.com/litex-hub/pythondata-cpu-serv@cdede3b5e35e0c8c385ff10d783905d95cd864ab#egg=pythondata-cpu-serv
 git+https://github.com/litex-hub/pythondata-software-picolibc@a5e11229885a87083ec54034f8d693ba52ea2718#egg=pythondata-software-picolibc
-git+https://github.com/litex-hub/valentyusb@0b534ccfccfcdcb7a5db219743f0c0b20e5ec412#egg=valentyusb-hw_cdc_eptri
+git+https://github.com/litex-hub/valentyusb@0b534ccfccfcdcb7a5db219743f0c0b20e5ec412#egg=valentyusb
 git+https://github.com/litex-hub/pythondata-misc-usb_ohci@1f9c77314d3b91fe3194245c3e3197a075803199#egg=pythondata-misc-usb_ohci
