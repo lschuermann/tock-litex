@@ -120,10 +120,12 @@ LiteX BIOS instead.
 
 ```
 $ litex_sim \
-  --csr-data-width=32 \
-  --integrated-rom-size=1048576 \
-  --cpu-variant=secure \
+  --integrated-rom-size=0x100000 \
+  --integrated-main-ram-size=0x10000000 \
+  --cpu-variant=tock+secure+imc \
   --with-ethernet \
+  --timer-uptime \
+  --with-gpio \
   --rom-init $PATH_TO_TOCK_BINARY
 [...]
 make: Leaving directory '$(pwd)/build/sim/gateware'
