@@ -34,10 +34,7 @@ let
   # - https://git.currently.online/leons/nix-litex.git
   #
   nixLitexSrc = builtins.fetchGit {
-    # Temporary downtime of git.sr.ht, see
-    # https://status.sr.ht/issues/2023-01-10-network-outage/
-    #url = "https://git.sr.ht/~lschuermann/nix-litex";
-    url = "https://git.currently.online/leons/nix-litex.git";
+    url = "https://git.sr.ht/~lschuermann/nix-litex";
     ref = "main";
     rev = "75fb0a2b9be43f43b8b14a2f0fd437ebdd8ba76f";
   };
